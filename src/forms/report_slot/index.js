@@ -1,0 +1,1 @@
+export { default as ReportSlotForm } from './report-slot-form';

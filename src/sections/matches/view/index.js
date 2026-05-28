@@ -1,0 +1,1 @@
+export { default as MatchesView } from './matches-view';

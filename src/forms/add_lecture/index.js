@@ -1,0 +1,1 @@
+export { default as AddLectureForm } from './add-lecture-form';

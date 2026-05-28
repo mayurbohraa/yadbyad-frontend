@@ -1,0 +1,1 @@
+export { default as AddResourcesForm } from './add-resources-form';

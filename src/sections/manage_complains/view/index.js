@@ -1,0 +1,1 @@
+export { default as ManageComplainsView } from './manage-complains-view';

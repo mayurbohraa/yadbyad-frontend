@@ -1,0 +1,1 @@
+export { default as StudentReportsSlotView } from './student-reports-slot-view';

@@ -1,0 +1,1 @@
+export { default as ManageReportsView } from './manage-reports-view';

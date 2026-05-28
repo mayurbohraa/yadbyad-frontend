@@ -1,0 +1,1 @@
+export { default as SubmitReportForm } from './submit-report-form';

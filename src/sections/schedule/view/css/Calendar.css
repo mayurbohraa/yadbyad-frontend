@@ -1,0 +1,74 @@
+.custom-container {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 75rem; /* max-w-7xl */
+}
+
+.custom-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+}
+
+.custom-button {
+  background-color: #a0aec0; /* bg-blue-200 */
+  padding-left: 0.5rem; /* px-2 */
+  padding-right: 0.5rem; /* px-2 */
+  border-radius: 0.375rem; /* rounded-md */
+  border-width: 1px; /* border-blue-600 */
+  border-style: solid; /* border-blue-600 */
+  margin: 0.5rem; /* m-2 */
+}
+
+.custom-span {
+  /* No Tailwind CSS class specified */
+}
+
+.custom-grid {
+  width: 100%; /* w-full */
+  max-width: 100%; /* max-w-full */
+  border-radius: 0.375rem; /* rounded-sm */
+  border-width: 1px; /* border-stroke */
+  border-style: solid; /* border-stroke */
+  background-color: #fff; /* bg-white */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* shadow-default */
+}
+
+.custom-grid > div {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Apply Tailwind CSS styles to specific elements within the grid */
+.custom-grid .custom-cell {
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 700; /* font-bold */
+  text-transform: uppercase; /* uppercase */
+  height: 2rem; /* h-8 */
+}
+
+.custom-grid .custom-cell-md {
+  height: 3.125rem; /* md:h-25 */
+}
+
+.custom-grid .custom-cell-xl {
+  height: 3.875rem; /* xl:h-31 */
+}
+
+.custom-grid .custom-cell-empty {
+  height: 2.5rem; /* h-20 */
+}
+
+/* Apply additional styles to active cells */
+.custom-grid .custom-cell-active {
+  font-weight: bold; /* font-bold */
+  background-color: #a5b4fc; /* bg-blue-200 */
+}
+
+.custom-grid .custom-cell:hover {
+  background-color: #edf2f7; /* hover:bg-gray */
+}

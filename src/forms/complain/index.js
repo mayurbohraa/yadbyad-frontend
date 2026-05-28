@@ -1,0 +1,1 @@
+export { default as ComplainForm } from './complain-form';

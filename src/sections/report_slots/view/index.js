@@ -1,0 +1,1 @@
+export { default as ReportSlotsView } from './report-slots-view'

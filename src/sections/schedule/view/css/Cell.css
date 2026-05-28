@@ -1,0 +1,35 @@
+.custom-cell-container {
+  position: relative;
+  cursor: pointer;
+  border: 1px solid;
+  border-color: #0000004d;
+  padding: 0.5rem;
+  transition-duration: 0.5s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  background-color: #f3f4f6;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+.custom-cell-container:hover {
+  background-color: #ccc; /* hover:bg-gray */
+}
+
+.custom-cell-container:hover::after {
+  background-color: #333; /* dark:border-strokedark */
+}
+
+.custom-cell-container:active {
+  background-color: #ddd; /* active:bg-gray */
+}
+
+.h-5 {
+  height: 4.5rem;
+}
+
+.h-2 {
+  height: 2rem;
+}
