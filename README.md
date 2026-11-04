@@ -4,7 +4,7 @@
 
 ## About the project
 
-Yad Byad is a college-project demo for students with special needs, part-time student supporters, and administrators. The frontend organizes academic peer support into role-specific dashboards and workflows.
+Yad Byad is a freelance client project built to support the client’s college project. It demonstrates peer support for students with special needs, part-time student supporters, and administrators. The frontend organizes academic peer support into role-specific dashboards and workflows.
 
 ## Key features
 
