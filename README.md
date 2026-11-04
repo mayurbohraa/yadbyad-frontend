@@ -1,69 +1,101 @@
 # Yad Byad Frontend
 
-*Empowering student success through peer collaboration.*
+## Project Overview
 
-## About the project
+Yad Byad connects students seeking academic assistance with student supporters. Its web interface organizes session planning, matching requests, shared resources, complaints, and report submissions through role-specific workspaces.
 
-Yad Byad is a freelance client project built to support the client’s college project. It demonstrates peer support for students with special needs, part-time student supporters, and administrators. The frontend organizes academic peer support into role-specific dashboards and workflows.
+## Project Preview
 
-## Key features
+<img src="public/project-preview.webp" alt="Yad Byad Frontend application screens and visual identity" width="520">
 
-- Student signup, sign-in, profiles, password changes, and recovery-code password reset.
-- Role-specific activity summaries and notifications, including administrator-reviewed account recovery.
-- Exam, lecture, and casual-session calendars with a filterable schedule table and matching requests.
-- Shared resources, complaints and replies, report submissions, and report review.
-- **View File** opens supported report attachments for their owner or an administrator. Other formats download.
+Application screens and visual identity. Branding mockups are presentation concepts.
 
-## Live website
+## Key Features
 
-https://yadbyad-frontend.vercel.app/
+- Student signup, sign-in, profiles, password changes, and recovery-code reset.
+- Dashboards and notifications for students, supporters, and administrators.
+- Exam, lecture, and casual-session calendars with search and filters.
+- Matching and session requests, learning resources, complaints, and report review.
+- Authenticated report-file access for the owner or an administrator.
+- In-place data refresh after changes and responsive dashboard navigation.
 
-## Tech stack
+## Live Website & Related Repository
 
-React 18, Vite 4, Material UI 5, Emotion, React Router 6, Axios, date-fns, and React Hot Toast.
+Application: https://yadbyad-frontend.vercel.app/
+
+Backend repository: https://github.com/mayurbohraa/yadbyad-backend
+
+## Tech Stack
+
+- **Interface:** React 18, Vite 4, Material UI 5, Emotion, React Router 6.
+- **Libraries:** Axios, Iconify, date-fns, Moment, React Hot Toast.
+- **Tools:** SWC, ESLint, Prettier.
 
 ## Prerequisites
 
-Node.js, npm, and a running Yad Byad backend. Verification used Node.js 24.13.0 and npm 11.12.1.
+Node.js, npm, and a configured Yad Byad API. Node.js 24 is used for this documentation verification.
 
-## Installation and setup
+## Installation & Setup
 
-1. Open `YadByad_Frontend` and run `npm ci`.
-2. Start the backend using its README.
-3. If the API address differs from the default, copy `.env.example` to `.env.local` and set `VITE_API_URL`.
-4. Run `npm run dev` and open the URL printed by Vite. The default port is 3030.
+1. Clone and open the frontend:
 
-## Environment configuration
+   ```sh
+   git clone https://github.com/mayurbohraa/yadbyad-frontend.git
+   cd yadbyad-frontend
+   ```
 
-`VITE_API_URL` is a public API base URL that includes `/api/v1`. Development defaults to `http://localhost:9000/api/v1`. The production build defaults to the hosted backend. Keep secrets out of frontend environment files.
+2. Install dependencies:
 
-## Running locally
+   ```sh
+   npm ci
+   ```
 
-| Task | Command |
-| --- | --- |
-| Development server | `npm run dev` |
-| Lint | `npm run lint` |
-| Production build | `npm run build` |
-| Preview the build | `npm run start` |
+3. Configure the companion API and set its local `PORT` to `9000`.
+4. If needed, copy `.env.example` to `.env.local` and set `VITE_API_URL` to the full API base URL, including `/api/v1`. Development defaults to `http://localhost:9000/api/v1`; production defaults to the hosted API. Restart Vite after changes.
 
-## Project structure
+## Running Locally
 
-```text
-YadByad_Frontend/
-├── public/           # Branding, illustration, and static assets
-├── src/
-│   ├── api/          # API client and request helpers
-│   ├── components/   # Shared interface controls
-│   ├── forms/        # Form workflows
-│   ├── layouts/      # Authentication and dashboard layouts
-│   ├── pages/        # Route entry points
-│   ├── routes/       # Route configuration and account guard
-│   ├── sections/     # Feature views and tables
-│   └── theme/        # Material UI theme
-├── .env.example
-└── vercel.json
+Development at `http://localhost:3030`:
+
+```sh
+npm run dev
 ```
 
-## Acknowledgements
+Build to `dist/`, then preview:
 
-The frontend uses the Minimals starter. Its MIT license and copyright notice are in `LICENSE.md`.
+```sh
+npm run build
+```
+
+```sh
+npm start
+```
+
+Run source checks:
+
+```sh
+npm run lint
+```
+
+There is no frontend test script configured. Dashboard requests require a running API.
+
+## Project Structure
+
+```text
+public/               # Branding, static assets, and README preview
+src/
+├── api/              # Axios client and request helpers
+├── components/       # Shared controls
+├── forms/            # Account and form workflows
+├── layouts/          # Authentication and dashboard shells
+├── pages/            # Route entry points
+├── routes/           # Routes and account guard
+├── sections/         # Feature views and tables
+└── theme/            # Material UI theme
+.env.example          # Public API configuration
+vercel.json           # SPA routing configuration
+```
+
+## Acknowledgements & Credits
+
+The frontend includes the Minimal UI / Minimals starter. The MIT license and copyright notice are preserved in `LICENSE.md`.
