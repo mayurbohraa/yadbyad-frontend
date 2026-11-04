@@ -1,4 +1,4 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -9,8 +9,10 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
+import useApiRefresh from 'src/hooks/use-api-refresh';
+
 import Routes from 'src/api/apiRoutes';
-import { yadbyadGet } from 'src/api/api.service'; 
+import { yadbyadGet } from 'src/api/api.service';
 
 import Scrollbar from 'src/components/scrollbar';
 
@@ -24,7 +26,6 @@ import UserTableToolbar from '../student-reports-slot-table-toolbar';
 // ----------------------------------------------------------------------
 
 export default function StudentReportsSlotView() {
-
   const [reportsSlot, setReportsSlot] = useState([]);
 
   const [dataFiltered, setDataFiltered] = useState([]);
@@ -41,7 +42,7 @@ export default function StudentReportsSlotView() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [notFound,setNotFound] = useState(true);
+  const [notFound, setNotFound] = useState(true);
 
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
@@ -59,7 +60,7 @@ export default function StudentReportsSlotView() {
     }
     setSelected([]);
   };
- 
+
   const handleClick = (event, status) => {
     const selectedIndex = selected.indexOf(status);
     let newSelected = [];
@@ -93,43 +94,47 @@ export default function StudentReportsSlotView() {
   };
 
   useEffect(() => {
-    if(!reportsSlot.length){
+    if (!reportsSlot.length) {
       fetchReportSlot();
     }
-    
+
     const dataFilteredValue = applyFilter({
       inputData: reportsSlot,
       comparator: getComparator(order, orderBy),
       filterName,
     });
-  
-  setDataFiltered(dataFilteredValue);
-  setNotFound(!dataFilteredValue.length && !!filterName);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order,orderBy,filterName]);
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order, orderBy, filterName]);
 
   const fetchReportSlot = async (e) => {
-    const response = await yadbyadGet(Routes.fetchReportSlot);   
-    setReportsSlot(response??[]);   
+    const response = await yadbyadGet(Routes.fetchReportSlot);
+    setReportsSlot(response ?? []);
     const dataFilteredValue = applyFilter({
-      inputData: response??[],
+      inputData: response ?? [],
       comparator: getComparator(order, orderBy),
       filterName,
     });
-    setDataFiltered(dataFilteredValue); 
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
+    setPage((current) =>
+      Math.min(current, Math.max(0, Math.ceil(dataFilteredValue.length / rowsPerPage) - 1))
+    );
   };
+
+  useApiRefresh(fetchReportSlot, ['/reportSlot', '/reports']);
 
   return (
     <Container>
       <Stack mb={5}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-        <Typography variant="h4">Submit Reports</Typography>
-       </Stack>
-       <Typography variant='subtitle1'>Submit your Report in Slots</Typography>
-       </Stack>
-      
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+          <Typography variant="h4">Submit Reports</Typography>
+        </Stack>
+        <Typography variant="subtitle1">Submit your Report in Slots</Typography>
+      </Stack>
 
       <Card>
         <UserTableToolbar
@@ -150,8 +155,8 @@ export default function StudentReportsSlotView() {
                 onSelectAllClick={handleSelectAllClick}
                 headLabel={[
                   { id: 'title', label: 'Title' },
-                  { id: 'startDateTime', label:'Start Date & Time'},
-                  { id: 'endDateTime', label:'End Date & Time'},
+                  { id: 'startDateTime', label: 'Start Date & Time' },
+                  { id: 'endDateTime', label: 'End Date & Time' },
                   { id: 'createdAt', label: 'Created At' },
                   { id: 'status', label: 'Status' },
                   { id: 'submitReport', label: 'Submit Report' },
@@ -178,7 +183,7 @@ export default function StudentReportsSlotView() {
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, reportsSlot.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, dataFiltered.length)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -190,7 +195,7 @@ export default function StudentReportsSlotView() {
         <TablePagination
           page={page}
           component="div"
-          count={reportsSlot.length}
+          count={dataFiltered.length}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25, 50]}

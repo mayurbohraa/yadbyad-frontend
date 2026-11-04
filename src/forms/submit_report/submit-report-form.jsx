@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 
 import { Box } from '@mui/material';
@@ -12,8 +11,6 @@ import Routes from 'src/api/apiRoutes';
 import { yadbyadMultiPartPost } from 'src/api/api.service';
 
 export default function SubmitReportForm({ handleClose, id }) {
-  const history = useNavigate();
-
   const [filename, setFilename] = useState('');
   const [description, setDescription] = useState('');
   const [report, setReport] = useState('');
@@ -45,9 +42,6 @@ export default function SubmitReportForm({ handleClose, id }) {
 
       if (response) {
         handleClose();
-        setTimeout(() => {
-          history(0);
-        }, '500');
       }
     }
   };

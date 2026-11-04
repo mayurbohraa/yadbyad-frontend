@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -8,6 +7,7 @@ import Toolbar from '@mui/material/Toolbar';
 import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 
+import useAccount from 'src/hooks/use-account';
 import { useResponsive } from 'src/hooks/use-responsive';
 
 import { bgBlur } from 'src/theme/css';
@@ -26,27 +26,20 @@ export default function Header({ onOpenNav }) {
 
   const lgUp = useResponsive('up', 'lg');
 
-  const [role, setRole] = useState('');
-
-  useEffect(() => {
-    const user_details = JSON.parse(localStorage.getItem('login_status'));
-    setRole(user_details.role);
-  }, []);
+  const account = useAccount();
 
   const renderContent = (
     <>
       {!lgUp && (
-        <IconButton onClick={onOpenNav} sx={{ mr: 1, color: '#fff' }}>
+        <IconButton aria-label="Open navigation" onClick={onOpenNav} sx={{ mr: 1, color: '#fff' }}>
           <Iconify icon="eva:menu-2-fill" />
         </IconButton>
       )}
 
       <Box sx={{ flexGrow: 1 }} />
 
-      <Stack direction="row" alignItems="center" spacing={1}>
-        { role === "special need student" && (
-          <ChatBot/>
-        )}
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+        {account?.role === 'special need student' && <ChatBot />}
         <NotificationsPopover />
         <AccountPopover />
       </Stack>

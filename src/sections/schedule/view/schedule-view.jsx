@@ -1,8 +1,10 @@
 import * as React from 'react';
+import { isSameMonth } from 'date-fns';
 import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Modal from '@mui/material/Modal';
@@ -11,9 +13,13 @@ import TableBody from '@mui/material/TableBody';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
+import LinearProgress from '@mui/material/LinearProgress';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+
+import useAccount from 'src/hooks/use-account';
+import useApiRefresh from 'src/hooks/use-api-refresh';
 
 import Routes from 'src/api/apiRoutes';
 import { yadbyadGet } from 'src/api/api.service';
@@ -30,6 +36,7 @@ import TableEmptyRows from './table-empty-rows';
 import UserTableRow from './schedule-table-row';
 import UserTableHead from './schedule-table-head';
 import UserTableToolbar from './schedule-table-toolbar';
+import CalendarEventsTable from './calendar-events-table';
 import { emptyRows, applyFilter, getComparator } from './utils';
 // ----------------------------------------------------------------------
 
@@ -47,7 +54,7 @@ export default function ScheduleView() {
     marginTop: '2%',
     marginLeft: 'auto',
     marginRight: 'auto',
-    width: 500,
+    width: 'min(500px, calc(100% - 32px))',
     // maxHeight: 640,
     marginBottom: '2%',
     bgcolor: 'background.paper',
@@ -56,56 +63,33 @@ export default function ScheduleView() {
     p: 4,
   };
 
-  // ------------------Code fix starts
-  // ** Demo Events **
   const [events, setEvents] = React.useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [calendarError, setCalendarError] = useState(false);
   const [filterType, setFilterType] = React.useState('All');
   const [currentDate, setCurrentDate] = React.useState(new Date());
-  const [role, setRole] = React.useState('');
-  const [filteredEvents, setFilteredEvents] = React.useState([]);
+  const role = useAccount()?.role;
+  const filteredEvents = events.filter(
+    (event) =>
+      (filterType === 'All' || event.type === filterType) &&
+      isSameMonth(new Date(event.date), currentDate)
+  );
 
-  const fetchEvents = async () => {
-    const response = await yadbyadGet(Routes.fetchExams);
-    return response ?? [];
-  };
-
-  const handleTabChange = (e, newValue) => {
-    setFilterType(newValue);
-  };
-
-  React.useEffect(() => {
-    if (filterType === 'All') {
-      setFilteredEvents([...events]); // If filter type is All, set filtered events to all events
-    } else {
-      const filtered = events.filter((event) => event.type === filterType);
-      setFilteredEvents(filtered);
+  const loadCalendar = async () => {
+    setCalendarError(false);
+    try {
+      const response = await yadbyadGet(Routes.fetchExams);
+      setEvents(response ?? []);
+    } catch {
+      setCalendarError(true);
+    } finally {
+      setLoadingEvents(false);
     }
-  }, [filterType, events]);
+  };
 
-  React.useEffect(() => {
-    const fetchData = async () => {
-      const eventsData = await fetchEvents();
-      const Today = new Date();
-      const futureEventsData = eventsData.filter((event) => {
-        // Parse event date and time
-        const eventDate = new Date(event.date);
-
-        // Compare event date with current date
-        return eventDate > Today;
-      });
-      setEvents(futureEventsData);
-      setFilteredEvents(futureEventsData); // Initially set filteredEvents to all events
-    };
-
-    fetchData();
-  }, []);
-
-
-  React.useEffect(() => {
-    const user_details = JSON.parse(localStorage.getItem('login_status'));
-    setRole(user_details.role);
-  }, []);
-  // -------------------Code fix ends
+  useEffect(() => {
+    if (role && role !== 'admin') loadCalendar();
+  }, [role]);
 
   const [exams, setExams] = useState([]);
 
@@ -175,8 +159,8 @@ export default function ScheduleView() {
   };
 
   useEffect(() => {
-    if (!exams.length) {
-      fetchExams();
+    if (role === 'admin' && !exams.length) {
+      fetchExams().catch(() => {});
     }
 
     const dataFilteredValue = applyFilter({
@@ -189,7 +173,7 @@ export default function ScheduleView() {
     setNotFound(!dataFilteredValue.length && !!filterName);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order, orderBy, filterName]);
+  }, [order, orderBy, filterName, role]);
 
   const fetchExams = async (e) => {
     const response = await yadbyadGet(Routes.AdminFetchExams);
@@ -200,21 +184,30 @@ export default function ScheduleView() {
       filterName,
     });
     setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
+    setPage((current) =>
+      Math.min(current, Math.max(0, Math.ceil(dataFilteredValue.length / rowsPerPage) - 1))
+    );
   };
+
+  useApiRefresh(async () => {
+    await (role === 'admin' ? fetchExams() : loadCalendar());
+  }, ['/schedule', '/lecture', '/casual', '/slot']);
 
   return (
     <Container>
       <Stack mb={5}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+        <Stack
+          direction="row"
+          flexWrap="wrap"
+          alignItems="center"
+          justifyContent="space-between"
+          gap={2}
+          mb={2}
+        >
           <Typography variant="h4">Schedules</Typography>
 
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            mb={2}
-            spacing={2}
-          >
+          <Stack direction="row" flexWrap="wrap" alignItems="center" gap={2}>
             <Stack direction="row" spacing={2}>
               {role === 'special need student' && (
                 <Button
@@ -243,8 +236,8 @@ export default function ScheduleView() {
                 <ToggleButtonGroup
                   color="primary"
                   exclusive
-                  onChange={handleTabChange}
-                  aria-label="Platform"
+                  onChange={(_, nextType) => nextType && setFilterType(nextType)}
+                  aria-label="Event type"
                   value={filterType}
                 >
                   <ToggleButton value="All">All</ToggleButton>
@@ -324,10 +317,24 @@ export default function ScheduleView() {
             </Modal>
           </Stack>
         </Stack>
-        {role !== 'admin' && (
-          <Scrollbar>
+        {role && role !== 'admin' && (
+          <Stack spacing={3}>
+            {loadingEvents && <LinearProgress aria-label="Loading schedules" />}
+            {calendarError && (
+              <Alert
+                severity="error"
+                action={
+                  <Button size="small" onClick={loadCalendar}>
+                    Retry
+                  </Button>
+                }
+              >
+                Schedules could not be loaded.
+              </Alert>
+            )}
             <Calendar value={currentDate} onChange={setCurrentDate} events={filteredEvents} />
-          </Scrollbar>
+            <CalendarEventsTable events={filteredEvents} />
+          </Stack>
         )}
 
         {role === 'admin' && (
@@ -393,7 +400,7 @@ export default function ScheduleView() {
 
                   <TableEmptyRows
                     height={77}
-                    emptyRows={emptyRows(page, rowsPerPage, exams.length)}
+                    emptyRows={emptyRows(page, rowsPerPage, dataFiltered.length)}
                   />
 
                   {notFound && <TableNoData query={filterName} />}
@@ -405,7 +412,7 @@ export default function ScheduleView() {
           <TablePagination
             page={page}
             component="div"
-            count={exams.length}
+            count={dataFiltered.length}
             rowsPerPage={rowsPerPage}
             onPageChange={handleChangePage}
             rowsPerPageOptions={[5, 10, 25, 50]}

@@ -1,4 +1,4 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -11,6 +11,8 @@ import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
+
+import useApiRefresh from 'src/hooks/use-api-refresh';
 
 import Routes from 'src/api/apiRoutes';
 import { yadbyadGet } from 'src/api/api.service';
@@ -29,7 +31,6 @@ import UserTableToolbar from '../student-complains-table-toolbar';
 // ----------------------------------------------------------------------
 
 export default function StudentComplainsView() {
-
   const [complains, setComplains] = useState([]);
 
   const [dataFiltered, setDataFiltered] = useState([]);
@@ -46,7 +47,7 @@ export default function StudentComplainsView() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [notFound,setNotFound] = useState(true);
+  const [notFound, setNotFound] = useState(true);
 
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
@@ -98,34 +99,36 @@ export default function StudentComplainsView() {
   };
 
   useEffect(() => {
-    if(!complains.length){
+    if (!complains.length) {
       fetchComplains();
     }
-    
+
     const dataFilteredValue = applyFilter({
       inputData: complains,
       comparator: getComparator(order, orderBy),
       filterName,
     });
-  
-  setDataFiltered(dataFilteredValue);
-  setNotFound(!dataFilteredValue.length && !!filterName);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order,orderBy,filterName]);
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order, orderBy, filterName]);
 
   const fetchComplains = async (e) => {
-    const response = await yadbyadGet(Routes.fetchComplain);   
-    setComplains(response??[]);   
+    const response = await yadbyadGet(Routes.fetchComplain);
+    setComplains(response ?? []);
     const dataFilteredValue = applyFilter({
-      inputData: response??[],
+      inputData: response ?? [],
       comparator: getComparator(order, orderBy),
       filterName,
     });
-    setDataFiltered(dataFilteredValue); 
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
+    setPage((current) =>
+      Math.min(current, Math.max(0, Math.ceil(dataFilteredValue.length / rowsPerPage) - 1))
+    );
   };
-
 
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
@@ -137,46 +140,51 @@ export default function StudentComplainsView() {
     marginRight: 'auto',
     width: 500,
     // maxHeight: 640,
-    marginBottom:'2%',
+    marginBottom: '2%',
     bgcolor: 'background.paper',
-    borderRadius:0.5,
+    borderRadius: 0.5,
     boxShadow: 24,
     p: 4,
   };
 
+  useApiRefresh(fetchComplains, ['/complain']);
 
   return (
     <Container>
       <Stack mb={5}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-        <Typography variant="h4">Complains (Student)</Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+          <Typography variant="h4">Complains (Student)</Typography>
 
-        <Button variant="contained" color="inherit" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleOpen}> 
-          Complain 
-        </Button>
+          <Button
+            variant="contained"
+            color="inherit"
+            startIcon={<Iconify icon="eva:plus-fill" />}
+            onClick={handleOpen}
+          >
+            Complain
+          </Button>
 
-        <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-        
-      >
-        <Scrollbar>        
-        <Box sx={style}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Complain Form (Student)
-          </Typography>
-          <hr/>
-          <Typography id="modal-modal-description" sx={{ mt: 2}}>
-            <ComplainForm handleClose={handleClose}/>
-          </Typography>
-        </Box>
-        </Scrollbar>
-      </Modal>
-       </Stack>
-       <Typography variant='subtitle1'>Your Complain Details</Typography>
-       </Stack>
+          <Modal
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="modal-modal-title"
+            aria-describedby="modal-modal-description"
+          >
+            <Scrollbar>
+              <Box sx={style}>
+                <Typography id="modal-modal-title" variant="h6" component="h2">
+                  Complain Form (Student)
+                </Typography>
+                <hr />
+                <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                  <ComplainForm handleClose={handleClose} />
+                </Typography>
+              </Box>
+            </Scrollbar>
+          </Modal>
+        </Stack>
+        <Typography variant="subtitle1">Your Complain Details</Typography>
+      </Stack>
 
       <Card>
         <UserTableToolbar
@@ -196,8 +204,8 @@ export default function StudentComplainsView() {
                 onRequestSort={handleSort}
                 onSelectAllClick={handleSelectAllClick}
                 headLabel={[
-                  { id: 'subject', label:'Subject'},
-                  { id: 'message', label:'Message'},
+                  { id: 'subject', label: 'Subject' },
+                  { id: 'message', label: 'Message' },
                   { id: 'createdAt', label: 'Created At' },
                   { id: 'status', label: 'Status' },
                   { id: 'reply', label: 'Reply' },
@@ -224,7 +232,7 @@ export default function StudentComplainsView() {
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, complains.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, dataFiltered.length)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -236,7 +244,7 @@ export default function StudentComplainsView() {
         <TablePagination
           page={page}
           component="div"
-          count={complains.length}
+          count={dataFiltered.length}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25, 50]}

@@ -1,35 +1,28 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
 import Popover from '@mui/material/Popover';
-import { alpha } from '@mui/material/styles';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
+import ButtonBase from '@mui/material/ButtonBase';
 
 import { useRouter } from 'src/routes/hooks';
 
-// ----------------------------------------------------------------------
+import useAccount from 'src/hooks/use-account';
 
-const MENU_OPTIONS = [
-  {
-    label: 'Profile',
-    icon: 'eva:person-fill',
-    href: '/profile',
-  },
-];
+import { clearAccount } from 'src/utils/account';
 
-const profile = {
-  photoURL: '/',
-};
+import axios from 'src/api/axios';
 
 // ----------------------------------------------------------------------
 
 export default function AccountPopover() {
   const [open, setOpen] = useState(null);
+  const [signingOut, setSigningOut] = useState(false);
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
@@ -39,47 +32,69 @@ export default function AccountPopover() {
     setOpen(null);
   };
 
-  let user;
-  const getuser = localStorage.getItem('login_status');
-  if (getuser && getuser.length) {
-    user = JSON.parse(getuser);
-  }
+  const user = useAccount();
 
   const router = useRouter();
 
-  const Logout = (e) => {
+  const logout = async (e) => {
     e.preventDefault();
-    localStorage.removeItem('login_status');
-    localStorage.removeItem('token_status');
-    router.push('/');
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await axios.post('/auth/logout');
+      clearAccount();
+      router.replace('/');
+    } catch {
+      toast.error('Unable to sign out. Please try again.');
+      setSigningOut(false);
+    }
   };
+
+  if (!user) return null;
 
   return (
     <>
-      <IconButton
+      <ButtonBase
+        aria-label="Account menu"
+        aria-expanded={Boolean(open)}
         onClick={handleOpen}
         sx={{
-          width: 40,
-          height: 40,
-          background: (theme) => alpha(theme.palette.grey[500], 0.08),
-          ...(open && {
-            background: (theme) =>
-              `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`,
-          }),
+          minWidth: 0,
+          gap: 1,
+          ml: { xs: 1.5, sm: 2.5 },
+          py: 0.5,
+          px: 0.75,
+          borderRadius: 1,
+          textAlign: 'left',
+          bgcolor: open ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
+          '&:hover, &.Mui-focusVisible': { bgcolor: 'rgba(255, 255, 255, 0.16)' },
         }}
       >
         <Avatar
-          src={profile.photoURL}
           alt={user.fullName}
           sx={{
             width: 36,
+            flexShrink: 0,
             height: 36,
             border: (theme) => `solid 2px ${theme.palette.background.default}`,
           }}
         >
-          {user.fullName.charAt(0).toUpperCase()}
+          {user.fullName?.charAt(0).toUpperCase()}
         </Avatar>
-      </IconButton>
+        <Box sx={{ minWidth: 0, maxWidth: { xs: 135, sm: 240 }, color: 'text.primary_one' }}>
+          <Typography variant="subtitle2" noWrap title={user.fullName}>
+            {user.fullName}
+          </Typography>
+          <Typography
+            variant="caption"
+            component="div"
+            noWrap
+            sx={{ color: 'text.secondary_one', textTransform: 'capitalize' }}
+          >
+            {user.role}
+          </Typography>
+        </Box>
+      </ButtonBase>
 
       <Popover
         open={!!open}
@@ -107,23 +122,20 @@ export default function AccountPopover() {
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        {MENU_OPTIONS.map((option) => (
-          <Link to={option.href} style={{ textDecoration: 'none', color: 'black' }}>
-            <MenuItem key={option.label} onClick={handleClose}>
-              {option.label}
-            </MenuItem>
-          </Link>
-        ))}
+        <MenuItem component={Link} to="/profile" onClick={handleClose}>
+          My Profile
+        </MenuItem>
 
         <Divider sx={{ borderStyle: 'dashed', m: 0 }} />
 
         <MenuItem
           disableRipple
           disableTouchRipple
-          onClick={Logout}
+          onClick={logout}
+          disabled={signingOut}
           sx={{ typography: 'body2', color: 'error.main', py: 1.5 }}
         >
-          Logout
+          {signingOut ? 'Signing out…' : 'Logout'}
         </MenuItem>
       </Popover>
     </>

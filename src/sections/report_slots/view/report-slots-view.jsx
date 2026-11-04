@@ -1,4 +1,4 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -12,8 +12,10 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
+import useApiRefresh from 'src/hooks/use-api-refresh';
+
 import Routes from 'src/api/apiRoutes';
-import { yadbyadGet } from 'src/api/api.service'; 
+import { yadbyadGet } from 'src/api/api.service';
 import { ReportSlotForm } from 'src/forms/report_slot';
 
 import Iconify from 'src/components/iconify';
@@ -45,7 +47,7 @@ export default function ReportSlotsView() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [notFound,setNotFound] = useState(true);
+  const [notFound, setNotFound] = useState(true);
 
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
@@ -63,7 +65,7 @@ export default function ReportSlotsView() {
     }
     setSelected([]);
   };
- 
+
   const handleClick = (event, status) => {
     const selectedIndex = selected.indexOf(status);
     let newSelected = [];
@@ -97,34 +99,36 @@ export default function ReportSlotsView() {
   };
 
   useEffect(() => {
-    if(!reportsSlot.length){
+    if (!reportsSlot.length) {
       fetchReportSlot();
     }
-    
+
     const dataFilteredValue = applyFilter({
       inputData: reportsSlot,
       comparator: getComparator(order, orderBy),
       filterName,
     });
-  
-  setDataFiltered(dataFilteredValue);
-  setNotFound(!dataFilteredValue.length && !!filterName);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order,orderBy,filterName]);
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order, orderBy, filterName]);
 
   const fetchReportSlot = async (e) => {
-    const response = await yadbyadGet(Routes.fetchReportSlot);   
-    setReportsSlot(response??[]);   
+    const response = await yadbyadGet(Routes.fetchReportSlot);
+    setReportsSlot(response ?? []);
     const dataFilteredValue = applyFilter({
-      inputData: response??[],
+      inputData: response ?? [],
       comparator: getComparator(order, orderBy),
       filterName,
     });
-    setDataFiltered(dataFilteredValue); 
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
+    setPage((current) =>
+      Math.min(current, Math.max(0, Math.ceil(dataFilteredValue.length / rowsPerPage) - 1))
+    );
   };
-
 
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
@@ -136,49 +140,53 @@ export default function ReportSlotsView() {
     marginRight: 'auto',
     width: 500,
     // maxHeight: 640,
-    marginBottom:'2%',
+    marginBottom: '2%',
     bgcolor: 'background.paper',
-    borderRadius:0.5,
+    borderRadius: 0.5,
     boxShadow: 24,
     p: 4,
   };
 
+  useApiRefresh(fetchReportSlot, ['/reportSlot']);
 
   return (
     <Container>
       <Stack mb={5}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-        <Typography variant="h4">Report Slot</Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+          <Typography variant="h4">Report Slot</Typography>
 
-        <Button variant="contained" color="inherit" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleOpen}> 
-          Report Slot
-        </Button>
-
-        <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-        
-      >
-        <Scrollbar>        
-        <Box sx={style}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
+          <Button
+            variant="contained"
+            color="inherit"
+            startIcon={<Iconify icon="eva:plus-fill" />}
+            onClick={handleOpen}
+          >
             Report Slot
-          </Typography>
-          <hr/>
-          <Typography id="modal-modal-description" sx={{ mt: 2}}>
-            <ReportSlotForm handleClose={handleClose}/>
-          </Typography>
-        </Box>
-        </Scrollbar>
-      </Modal>
-       </Stack>
-      <Typography variant='subtitle1'>Report Submission Slot Details</Typography>
-       </Stack>
-      
+          </Button>
 
-       <Card>
+          <Modal
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="modal-modal-title"
+            aria-describedby="modal-modal-description"
+          >
+            <Scrollbar>
+              <Box sx={style}>
+                <Typography id="modal-modal-title" variant="h6" component="h2">
+                  Report Slot
+                </Typography>
+                <hr />
+                <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                  <ReportSlotForm handleClose={handleClose} />
+                </Typography>
+              </Box>
+            </Scrollbar>
+          </Modal>
+        </Stack>
+        <Typography variant="subtitle1">Report Submission Slot Details</Typography>
+      </Stack>
+
+      <Card>
         <UserTableToolbar
           numSelected={selected.length}
           filterName={filterName}
@@ -197,8 +205,8 @@ export default function ReportSlotsView() {
                 onSelectAllClick={handleSelectAllClick}
                 headLabel={[
                   { id: 'title', label: 'Title' },
-                  { id: 'startDateTime', label:'Start Date & Time'},
-                  { id: 'endDateTime', label:'End Date & Time'},
+                  { id: 'startDateTime', label: 'Start Date & Time' },
+                  { id: 'endDateTime', label: 'End Date & Time' },
                   { id: 'createdAt', label: 'Created At' },
                   { id: 'status', label: 'Status' },
                   { id: '' },
@@ -223,7 +231,7 @@ export default function ReportSlotsView() {
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, reportsSlot.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, dataFiltered.length)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -235,14 +243,13 @@ export default function ReportSlotsView() {
         <TablePagination
           page={page}
           component="div"
-          count={reportsSlot.length}
+          count={dataFiltered.length}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25, 50]}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Card>
-   
     </Container>
   );
 }

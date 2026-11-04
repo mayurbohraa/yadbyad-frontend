@@ -2,6 +2,10 @@ const routes = {
   login: '/auth/login',
   signup: '/auth/signup',
   forgotPassword: '/auth/forgotPassword',
+  verifyRecovery: '/auth/recovery/verify',
+  requestRecovery: '/auth/recovery/request',
+  recoveryCode: '/auth/recovery/code',
+  me: '/auth/me',
 
   users: '/auth/users',
   deleteUser: (id) => `/auth/users/${id}`,

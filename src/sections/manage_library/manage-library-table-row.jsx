@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from "react-router-dom";
 
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
@@ -18,19 +17,9 @@ import { yadbyadDelete } from 'src/api/api.service';
 
 import Iconify from 'src/components/iconify';
 
-
 // ----------------------------------------------------------------------
 
-export default function UserTableRow({
-  id,
-  selected,
-  title,
-  description,
-  url,
-  handleClick,
-}) {
-  const history = useNavigate();
-
+export default function UserTableRow({ id, selected, title, description, url, handleClick }) {
   const [open, setOpen] = useState(null);
 
   const handleOpenMenu = (event) => {
@@ -42,58 +31,61 @@ export default function UserTableRow({
   };
 
   const handleDelete = async (e) => {
-    
     e.preventDefault();
 
     const body = {};
-    
 
-    const response = await yadbyadDelete(Routes.deleteResource(id), body);
-    
-
-    if (response) {
-      setTimeout(() => {
-        history(0);
-      }, "1500");
-    }
-};
-
+    await yadbyadDelete(Routes.deleteResource(id), body);
+  };
 
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
         <TableCell padding="checkbox">
           <Checkbox disableRipple checked={selected} onChange={handleClick} />
-        </TableCell>        
-        
-        <TableCell sx={{
-            textTransform: 'capitalize'
-          }}>{title}</TableCell>
-        
-        <TableCell sx={{
-            textTransform: 'capitalize'
-          }}>{description}</TableCell>
-        
+        </TableCell>
+
+        <TableCell
+          sx={{
+            textTransform: 'capitalize',
+          }}
+        >
+          {title}
+        </TableCell>
+
+        <TableCell
+          sx={{
+            textTransform: 'capitalize',
+          }}
+        >
+          {description}
+        </TableCell>
 
         <TableCell>
-          <Button variant="contained" size="small" sx={{
-          borderRadius: 0.5
-              }}>
-
-                <Link href={url} target='_blank' rel="noreferrer" style={{textDecoration:'none', color:'#fff'}}>
-                <Typography >View Resource</Typography>
-                </Link>
-                </Button>
+          <Button
+            variant="contained"
+            size="small"
+            sx={{
+              borderRadius: 0.5,
+            }}
+          >
+            <Link
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              style={{ textDecoration: 'none', color: '#fff' }}
+            >
+              <Typography>View Resource</Typography>
+            </Link>
+          </Button>
         </TableCell>
-        
+
         <TableCell align="right">
           <IconButton onClick={handleOpenMenu}>
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
         </TableCell>
-
-        </TableRow>
-
+      </TableRow>
 
       <Popover
         open={!!open}
@@ -105,15 +97,13 @@ export default function UserTableRow({
           sx: { width: 140 },
         }}
       >
-
-      <MenuItem onClick={handleCloseMenu} sx={{ color: 'error.main' }}>
-        <Stack direction='row' onClick={handleDelete}>
+        <MenuItem onClick={handleCloseMenu} sx={{ color: 'error.main' }}>
+          <Stack direction="row" onClick={handleDelete}>
             <Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />
             <Typography> Delete </Typography>
           </Stack>
-      </MenuItem>
-
-    </Popover >
+        </MenuItem>
+      </Popover>
     </>
   );
 }

@@ -1,183 +1,175 @@
+import { useState } from 'react';
 import PropTypes from 'prop-types';
-import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 
-import Box from '@mui/material/Box';
+import Link from '@mui/material/Link';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
+import Typography from '@mui/material/Typography';
+import LoadingButton from '@mui/lab/LoadingButton';
 
-import Routes from 'src/api/apiRoutes';
-import { yadbyadPost } from 'src/api/api.service';
+import { PASSWORD_HELP, validPassword } from 'src/utils/account';
 
-import Iconify from 'src/components/iconify';
+import axios from 'src/api/axios';
+
+import PasswordField from 'src/components/password-field';
 
 export default function ForgotPasswordForm({ handleClose }) {
-  const history = useNavigate();
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,20}$/;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[qu]+(?:\.[edu]+)+(?:\.[qa]+)*$/;
-
+  const [step, setStep] = useState(0);
   const [email, setEmail] = useState('');
-  const [validEmail, setValidEmail] = useState(false);
-
+  const [code, setCode] = useState('');
+  const [resetToken, setResetToken] = useState('');
   const [password, setPassword] = useState('');
-  const [validPassword, setValidPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
-  const [matchPassword, setMatchPassword] = useState('');
-  const [validMatch, setValidMatch] = useState(false);
-
-  useEffect(() => {
-    const Email = EMAIL_REGEX.test(email);
-    const Password = PASSWORD_REGEX.test(password);
-    setValidEmail(Email);
-    setValidPassword(Password);
-    const match = password === matchPassword;
-    setValidMatch(match);
-  }, [email, EMAIL_REGEX, PASSWORD_REGEX, password, matchPassword]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const body = {
-      email: email.trim(),
-      newPassword: password.trim(),
-    };
-
-    if (body.email === '' || body.newPassword === '' || matchPassword === '') {
-      toast.error('Complete all fields.', {
-        icon: '⚠️',
-        style: {
-          background: '#3f7bf2',
-          color: '#fff',
-        },
-      });
-    } else {
-      const response = await yadbyadPost(Routes.forgotPassword, body);
-      if (response) {
-        handleClose();
-        setTimeout(() => {
-          history(0);
-        }, '500');
+  const submit = async (event) => {
+    event.preventDefault();
+    if (busy) return;
+    setError('');
+    setNotice('');
+    if (step === 0) {
+      setStep(1);
+      return;
+    }
+    if (step === 2 && (!validPassword(password) || password !== confirmPassword)) {
+      setError(password !== confirmPassword ? 'Passwords do not match.' : PASSWORD_HELP);
+      return;
+    }
+    setBusy(true);
+    try {
+      if (step === 1) {
+        const { data } = await axios.post('/auth/recovery/verify', { email, recoveryCode: code });
+        setResetToken(data.data.resetToken);
+        setStep(2);
+      } else {
+        await axios.post('/auth/forgotPassword', { resetToken, newPassword: password });
+        setResetToken('');
+        setPassword('');
+        setConfirmPassword('');
+        setCode('');
+        setStep(3);
       }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Unable to continue. Please try again.');
+    } finally {
+      setBusy(false);
     }
   };
 
-  return (
-    <Box>
+  const requestRecovery = async () => {
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      await axios.post('/auth/recovery/request', { email });
+      setNotice('If the email is registered, your request is pending review.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Unable to record the request. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (step === 3)
+    return (
       <Stack spacing={3}>
-        <Stack>
+        <Alert severity="success">
+          Password updated. You can now sign in with your new password.
+        </Alert>
+        <Button component={RouterLink} to="/" variant="contained" onClick={handleClose}>
+          Back to sign in
+        </Button>
+      </Stack>
+    );
+
+  return (
+    <Stack component="form" spacing={3} onSubmit={submit}>
+      {error && <Alert severity="error">{error}</Alert>}
+      {notice && <Alert severity="info">{notice}</Alert>}
+      {step === 0 && (
+        <TextField
+          required
+          type="email"
+          fullWidth
+          label="Account email"
+          autoComplete="email"
+          value={email}
+          inputProps={{ maxLength: 254 }}
+          onChange={(e) => setEmail(e.target.value.trim())}
+        />
+      )}
+      {step === 1 && (
+        <>
+          <Typography color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
+            Use the code saved from My Profile → Account recovery.
+          </Typography>
           <TextField
-            type="email"
-            id="email"
-            name="email"
-            label="Email"
-            placeholder="Email"
-            autoComplete="off"
-            helperText="Email Format : abc@qu.edu.qa"
             required
-            onChange={(e) => setEmail(e.target.value)}
-            aria-invalid={validEmail ? 'false' : 'true'}
+            fullWidth
+            label="Recovery code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            autoComplete="off"
+            inputProps={{ maxLength: 40, spellCheck: false }}
+            helperText="Enter all 24 characters. Hyphens are optional."
           />
-
-          <span className={validEmail ? 'valid3' : 'hide3'}>
-            <Iconify icon="mdi:tick-circle" />
-          </span>
-          <span className={validEmail || !email ? 'hide3' : 'invalid3'}>
-            <Iconify icon="ep:warning-filled" />
-          </span>
-        </Stack>
-
-        <Stack>
-          <TextField
-            name="password"
-            id="password"
-            label="Password"
+          <Button type="button" disabled={busy} onClick={requestRecovery}>
+            Request account recovery
+          </Button>
+          {!notice && (
+            <Typography variant="caption" color="text.secondary">
+              Approval appears in dashboard notifications.
+            </Typography>
+          )}
+        </>
+      )}
+      {step === 2 && (
+        <>
+          <PasswordField
+            label="New password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            autoComplete="off"
-            placeholder="Password"
-            required
-            type={showPassword ? 'text' : 'password'}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                    <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            aria-invalid={validPassword ? 'false' : 'true'}
-            helperText="Password should contains alphabets, digits and characters."
+            helperText={PASSWORD_HELP}
+            autoComplete="new-password"
+            inputProps={{ maxLength: 72 }}
           />
-
-          <span className={validPassword ? 'valid4' : 'hide4'}>
-            <Iconify icon="mdi:tick-circle" />
-          </span>
-          <span className={validPassword || !password ? 'hide4' : 'invalid4'}>
-            <Iconify icon="ep:warning-filled" />
-          </span>
-        </Stack>
-
-        <Stack>
-          <TextField
-            name="confirm_password"
-            id="confirm_password"
-            label="Confirm Password"
-            onChange={(e) => setMatchPassword(e.target.value)}
-            autoComplete="off"
-            placeholder="Confirm Password"
-            helperText="Match your password"
-            required
-            type={showConfirmPassword ? 'text' : 'password'}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    edge="end"
-                  >
-                    <Iconify icon={showConfirmPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            aria-invalid={validMatch ? 'false' : 'true'}
+          <PasswordField
+            label="Confirm new password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            autoComplete="new-password"
+            error={!!confirmPassword && password !== confirmPassword}
+            helperText={
+              confirmPassword && password !== confirmPassword ? 'Passwords do not match.' : ''
+            }
           />
-          <span className={validMatch && matchPassword ? 'valid4' : 'hide4'}>
-            <Iconify icon="mdi:tick-circle" />
-          </span>
-          <span className={validMatch || !matchPassword ? 'hide4' : 'invalid4'}>
-            <Iconify icon="ep:warning-filled" />
-          </span>
-        </Stack>
-      </Stack>
-
-      <Stack
-        spacing={1}
-        direction="row"
-        sx={{ mt: 4 }}
-        justifyContent="flex-end"
-        alignItems="center"
-      >
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
-          Submit
+        </>
+      )}
+      <LoadingButton type="submit" variant="contained" color="inherit" loading={busy}>
+        {['Continue', 'Verify recovery code', 'Update password'][step]}
+      </LoadingButton>
+      {step > 0 && (
+        <Button
+          disabled={busy}
+          onClick={() => {
+            setStep(step - 1);
+            setError('');
+            setNotice('');
+            setResetToken('');
+          }}
+        >
+          Back
         </Button>
-
-        <Button onClick={() => handleClose()} variant="contained" color="error">
-          Close
-        </Button>
-      </Stack>
-    </Box>
+      )}
+      <Link component={RouterLink} to="/" onClick={handleClose} textAlign="center">
+        Back to sign in
+      </Link>
+    </Stack>
   );
 }
 

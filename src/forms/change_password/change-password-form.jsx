@@ -1,193 +1,82 @@
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
 
-import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
+import LoadingButton from '@mui/lab/LoadingButton';
 
-import Routes from 'src/api/apiRoutes';
-import { yadbyadPost } from 'src/api/api.service';
+import { saveAccount, PASSWORD_HELP, validPassword } from 'src/utils/account';
 
-import Iconify from 'src/components/iconify';
+import axios from 'src/api/axios';
+
+import PasswordField from 'src/components/password-field';
 
 export default function ChangePasswordForm({ handleClose }) {
-  const history = useNavigate();
-
-  const [showOldPassword, setShowOldPassword] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const [oldPassword, setOldPassword] = useState('');
-  const [validOldPassword, setValidOldPassword] = useState(false);
-
   const [password, setPassword] = useState('');
-  const [validPassword, setValidPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmation, setConfirmation] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
 
-  const [matchPassword, setMatchPassword] = useState('');
-  const [validMatch, setValidMatch] = useState(false);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,20}$/;
-
-  useEffect(() => {
-    const OldPassword = PASSWORD_REGEX.test(oldPassword);
-    const Password = PASSWORD_REGEX.test(password);
-    setValidOldPassword(OldPassword);
-    setValidPassword(Password);
-    const match = password === matchPassword;
-    setValidMatch(match);
-  }, [PASSWORD_REGEX, oldPassword, password, matchPassword]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const body = {
-      password: oldPassword.trim(),
-      newPassword: password.trim(),
-    };
-
-    if (body.password === '' || body.newPassword === '' || matchPassword === '') {
-      toast.error('Complete all fields.', {
-        icon: '⚠️',
-        style: {
-          background: '#3f7bf2',
-          color: '#fff',
-        },
-      });
-    } else {
-      const response = await yadbyadPost(Routes.changePassword, body);
-
-      if (response) {
-        handleClose();
-        setTimeout(() => {
-          history(0);
-        }, '500');
-      }
+  const submit = async (event) => {
+    event.preventDefault();
+    if (busy) return;
+    if (!validPassword(newPassword) || newPassword !== confirmation) {
+      setError(newPassword !== confirmation ? 'Passwords do not match.' : PASSWORD_HELP);
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      const { data } = await axios.post('/auth/users/changePassword', { password, newPassword });
+      saveAccount(data.data.user, data.data.token);
+      setPassword('');
+      setNewPassword('');
+      setConfirmation('');
+      toast.success(data.message || 'Password changed.');
+      if (handleClose) handleClose();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Unable to change your password. Please try again.');
+    } finally {
+      setBusy(false);
     }
   };
 
   return (
-    <Box>
-      <Stack spacing={3}>
-        <Stack>
-          <TextField
-            name="oldPassword"
-            id="oldPassword"
-            label="Old Password"
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-            autoComplete="off"
-            placeholder="Old Password"
-            required
-            type={showOldPassword ? 'text' : 'password'}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowOldPassword(!showOldPassword)} edge="end">
-                    <Iconify icon={showOldPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            aria-invalid={validOldPassword ? 'false' : 'true'}
-            helperText="Enter your old password and password should contains alphabets, digits and characters."
-          />
-
-          <span className={validOldPassword ? 'valid4' : 'hide4'}>
-            <Iconify icon="mdi:tick-circle" />
-          </span>
-          <span className={validOldPassword || !oldPassword ? 'hide4' : 'invalid4'}>
-            <Iconify icon="ep:warning-filled" />
-          </span>
-        </Stack>
-
-        <Stack>
-          <TextField
-            name="password"
-            id="password"
-            label="New Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="off"
-            placeholder="New Password"
-            required
-            type={showPassword ? 'text' : 'password'}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                    <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            aria-invalid={validPassword ? 'false' : 'true'}
-            helperText="Enter New Password and Password should contains alphabets, digits and characters."
-          />
-
-          <span className={validPassword ? 'valid4' : 'hide4'}>
-            <Iconify icon="mdi:tick-circle" />
-          </span>
-          <span className={validPassword || !password ? 'hide4' : 'invalid4'}>
-            <Iconify icon="ep:warning-filled" />
-          </span>
-        </Stack>
-
-        <Stack>
-          <TextField
-            name="confirm_password"
-            id="confirm_password"
-            label="Confirm New Password"
-            onChange={(e) => setMatchPassword(e.target.value)}
-            autoComplete="off"
-            placeholder="Confirm New Password"
-            helperText="Match your password"
-            required
-            type={showConfirmPassword ? 'text' : 'password'}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    edge="end"
-                  >
-                    <Iconify icon={showConfirmPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            aria-invalid={validMatch ? 'false' : 'true'}
-          />
-          <span className={validMatch && matchPassword ? 'valid4' : 'hide4'}>
-            <Iconify icon="mdi:tick-circle" />
-          </span>
-          <span className={validMatch || !matchPassword ? 'hide4' : 'invalid4'}>
-            <Iconify icon="ep:warning-filled" />
-          </span>
-        </Stack>
-      </Stack>
-
-      <Stack
-        spacing={1}
-        direction="row"
-        sx={{ mt: 4 }}
-        justifyContent="flex-end"
-        alignItems="center"
+    <Stack component="form" spacing={3} onSubmit={submit}>
+      {error && <Alert severity="error">{error}</Alert>}
+      <PasswordField
+        label="Current password"
+        autoComplete="current-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <PasswordField
+        label="New password"
+        autoComplete="new-password"
+        value={newPassword}
+        onChange={(e) => setNewPassword(e.target.value)}
+        helperText={PASSWORD_HELP}
+        inputProps={{ maxLength: 72 }}
+      />
+      <PasswordField
+        label="Confirm new password"
+        autoComplete="new-password"
+        value={confirmation}
+        onChange={(e) => setConfirmation(e.target.value)}
+        error={!!confirmation && newPassword !== confirmation}
+        helperText={confirmation && newPassword !== confirmation ? 'Passwords do not match.' : ''}
+      />
+      <LoadingButton
+        type="submit"
+        variant="contained"
+        loading={busy}
+        sx={{ alignSelf: 'flex-start' }}
       >
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
-          Submit
-        </Button>
-
-        <Button onClick={() => handleClose()} variant="contained" color="error">
-          Close
-        </Button>
-      </Stack>
-    </Box>
+        Change password
+      </LoadingButton>
+    </Stack>
   );
 }
 

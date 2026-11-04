@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import toast from 'react-hot-toast';
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -12,8 +11,6 @@ import Routes from 'src/api/apiRoutes';
 import { yadbyadPost } from 'src/api/api.service';
 
 export default function CasualSessionForm({ handleClose }) {
-  const history = useNavigate();
-
   const [date, setDate] = useState('');
 
   const [endTime, setEndTime] = useState('');
@@ -56,9 +53,6 @@ export default function CasualSessionForm({ handleClose }) {
 
       if (response) {
         handleClose();
-        setTimeout(() => {
-          history(0);
-        }, '500');
       }
     }
   };

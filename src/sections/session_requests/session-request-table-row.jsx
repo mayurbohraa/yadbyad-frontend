@@ -2,7 +2,6 @@
 import moment from 'moment';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
 
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
@@ -35,7 +34,6 @@ export default function UserTableRow({
   handleClick,
 }) {
   const [open, setOpen] = useState(null);
-  const history = useNavigate();
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
   };
@@ -44,13 +42,7 @@ export default function UserTableRow({
     setOpen(null);
   };
   async function handleRequest(update) {
-    
-    const response = await yadbyadPut(Routes.updateRequest(id, update));
-    if (response) {
-      setTimeout(() => {
-        history(0);
-      }, "1500");
-    }
+    await yadbyadPut(Routes.updateRequest(id, update));
   }
 
   return (
@@ -82,10 +74,8 @@ export default function UserTableRow({
         <TableCell>{room}</TableCell>
 
         <TableCell>{date} </TableCell>
-        <TableCell>
-          {moment(startTime).format("h:mm a")}
-        </TableCell>
-        <TableCell>{moment(endTime).format("h:mm a")} </TableCell>
+        <TableCell>{moment(startTime).format('h:mm a')}</TableCell>
+        <TableCell>{moment(endTime).format('h:mm a')} </TableCell>
 
         <TableCell>
           <Label

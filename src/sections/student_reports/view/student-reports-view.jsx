@@ -1,4 +1,4 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -8,6 +8,8 @@ import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
+
+import useApiRefresh from 'src/hooks/use-api-refresh';
 
 import Routes from 'src/api/apiRoutes';
 import { yadbyadGet } from 'src/api/api.service';
@@ -24,7 +26,6 @@ import { emptyRows, applyFilter, getComparator } from '../utils';
 // ----------------------------------------------------------------------
 
 export default function StudentReportsView() {
-
   const [reports, setReports] = useState([]);
 
   const [dataFiltered, setDataFiltered] = useState([]);
@@ -41,7 +42,7 @@ export default function StudentReportsView() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [notFound,setNotFound] = useState(true);
+  const [notFound, setNotFound] = useState(true);
 
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
@@ -59,7 +60,7 @@ export default function StudentReportsView() {
     }
     setSelected([]);
   };
- 
+
   const handleClick = (event, status) => {
     const selectedIndex = selected.indexOf(status);
     let newSelected = [];
@@ -93,44 +94,47 @@ export default function StudentReportsView() {
   };
 
   useEffect(() => {
-    if(!reports.length){
+    if (!reports.length) {
       fetchReports();
     }
-    
+
     const dataFilteredValue = applyFilter({
       inputData: reports,
       comparator: getComparator(order, orderBy),
       filterName,
     });
-  
-  setDataFiltered(dataFilteredValue);
-  setNotFound(!dataFilteredValue.length && !!filterName);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order,orderBy,filterName]);
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order, orderBy, filterName]);
 
   const fetchReports = async (e) => {
-    const response = await yadbyadGet(Routes.fetchReport);   
-    setReports(response??[]);   
+    const response = await yadbyadGet(Routes.fetchReport);
+    setReports(response ?? []);
     const dataFilteredValue = applyFilter({
-      inputData: response??[],
+      inputData: response ?? [],
       comparator: getComparator(order, orderBy),
       filterName,
     });
-    setDataFiltered(dataFilteredValue); 
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
+    setPage((current) =>
+      Math.min(current, Math.max(0, Math.ceil(dataFilteredValue.length / rowsPerPage) - 1))
+    );
   };
 
+  useApiRefresh(fetchReports, ['/reports']);
 
   return (
     <Container>
       <Stack mb={5}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-        <Typography variant="h4">Submitted Reports</Typography>
-       </Stack>
-       <Typography variant='subtitle1'>Part Time Students Reports Details</Typography>
-       </Stack>
-      
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+          <Typography variant="h4">Submitted Reports</Typography>
+        </Stack>
+        <Typography variant="subtitle1">Part Time Students Reports Details</Typography>
+      </Stack>
 
       <Card>
         <UserTableToolbar
@@ -150,8 +154,8 @@ export default function StudentReportsView() {
                 onRequestSort={handleSort}
                 onSelectAllClick={handleSelectAllClick}
                 headLabel={[
-                  { id: 'filename', label:'File Name'},
-                  { id: 'description', label:'Description'},
+                  { id: 'filename', label: 'File Name' },
+                  { id: 'description', label: 'Description' },
                   { id: 'slot', label: 'Slot' },
                   { id: 'viewfile', label: 'File' },
                   { id: 'createdAt', label: 'Submitted At' },
@@ -181,7 +185,7 @@ export default function StudentReportsView() {
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, reports.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, dataFiltered.length)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -193,7 +197,7 @@ export default function StudentReportsView() {
         <TablePagination
           page={page}
           component="div"
-          count={reports.length}
+          count={dataFiltered.length}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25, 50]}

@@ -1,22 +1,19 @@
 import { useState, useEffect } from 'react';
 
-import { Box } from '@mui/material';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
-import Modal from '@mui/material/Modal';
-import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
+import useApiRefresh from 'src/hooks/use-api-refresh';
+
 import Routes from 'src/api/apiRoutes';
 import { yadbyadGet } from 'src/api/api.service';
-import { AddUserForm } from 'src/forms/add_user';
 
-import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 
 import TableNoData from '../table-no-data';
@@ -122,60 +119,19 @@ export default function UserPage() {
       filterName,
     });
     setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
+    setPage((current) =>
+      Math.min(current, Math.max(0, Math.ceil(dataFilteredValue.length / rowsPerPage) - 1))
+    );
   };
 
-  // Model code
-
-  const [open, setOpen] = useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-
-  const style = {
-    marginTop: '2%',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    width: 500,
-    // maxHeight: 640,
-    marginBottom: '2%',
-    bgcolor: 'background.paper',
-    borderRadius: 0.5,
-    boxShadow: 24,
-    p: 4,
-  };
+  useApiRefresh(fetchStudents, ['/auth/users']);
 
   return (
     <Container>
       <Stack mb={5}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
           <Typography variant="h4">Users</Typography>
-
-          <Button
-            variant="contained"
-            color="inherit"
-            startIcon={<Iconify icon="eva:plus-fill" />}
-            onClick={handleOpen}
-          >
-            New User
-          </Button>
-
-          <Modal
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
-          >
-            <Scrollbar>
-              <Box sx={style}>
-                <Typography id="modal-modal-title" variant="h6" component="h2">
-                  Add New User (Student)
-                </Typography>
-                <hr />
-                <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                  <AddUserForm handleClose={handleClose} />
-                </Typography>
-              </Box>
-            </Scrollbar>
-          </Modal>
         </Stack>
         <Typography variant="subtitle1"> All User Details</Typography>
       </Stack>
@@ -228,7 +184,7 @@ export default function UserPage() {
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, students.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, dataFiltered.length)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -240,7 +196,7 @@ export default function UserPage() {
         <TablePagination
           page={page}
           component="div"
-          count={students.length}
+          count={dataFiltered.length}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25]}

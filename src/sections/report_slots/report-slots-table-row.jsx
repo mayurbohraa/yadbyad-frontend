@@ -2,7 +2,6 @@
 import moment from 'moment';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from "react-router-dom";
 
 import Stack from '@mui/material/Stack';
 import Popover from '@mui/material/Popover';
@@ -31,8 +30,6 @@ export default function UserTableRow({
   status,
   handleClick,
 }) {
-  const history = useNavigate();
-
   const [open, setOpen] = useState(null);
 
   const handleOpenMenu = (event) => {
@@ -44,52 +41,44 @@ export default function UserTableRow({
   };
 
   const handleDelete = async (e) => {
-    
     e.preventDefault();
 
     const body = {};
-    
 
-    const response = await yadbyadDelete(Routes.deleteReportSlot(id), body);
-    
-
-    if (response) {
-        history(0, 2000000);
-    }
-};
-
+    await yadbyadDelete(Routes.deleteReportSlot(id), body);
+  };
 
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
         <TableCell padding="checkbox">
           <Checkbox disableRipple checked={selected} onChange={handleClick} />
-        </TableCell>        
-        
-        <TableCell sx={{
-            textTransform: 'capitalize'
-          }}>{title}</TableCell>
-        
-        <TableCell>{moment(startDateTime).format("L , h:mm a")} </TableCell>
+        </TableCell>
 
-        <TableCell>{moment(endDateTime).format("L , h:mm a")} </TableCell>
-        
-        <TableCell>{moment(createdAt).format("L , h:mm a")} </TableCell>
+        <TableCell
+          sx={{
+            textTransform: 'capitalize',
+          }}
+        >
+          {title}
+        </TableCell>
+
+        <TableCell>{moment(startDateTime).format('L , h:mm a')} </TableCell>
+
+        <TableCell>{moment(endDateTime).format('L , h:mm a')} </TableCell>
+
+        <TableCell>{moment(createdAt).format('L , h:mm a')} </TableCell>
 
         <TableCell>
           <Label color={(status === 'closed' && 'error') || 'success'}>{status}</Label>
         </TableCell>
-
-
 
         <TableCell align="right">
           <IconButton onClick={handleOpenMenu}>
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
         </TableCell>
-
-        </TableRow>
-
+      </TableRow>
 
       <Popover
         open={!!open}
@@ -101,14 +90,13 @@ export default function UserTableRow({
           sx: { width: 140 },
         }}
       >
-      <MenuItem onClick={handleCloseMenu} sx={{ color: 'error.main' }}>
-        <Stack direction='row' onClick={handleDelete}>
+        <MenuItem onClick={handleCloseMenu} sx={{ color: 'error.main' }}>
+          <Stack direction="row" onClick={handleDelete}>
             <Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />
             <Typography> Delete </Typography>
           </Stack>
-      </MenuItem>
-
-    </Popover >
+        </MenuItem>
+      </Popover>
     </>
   );
 }

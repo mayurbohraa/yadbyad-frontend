@@ -2,7 +2,6 @@
 import moment from 'moment';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from "react-router-dom";
 
 import Stack from '@mui/material/Stack';
 import Popover from '@mui/material/Popover';
@@ -19,7 +18,6 @@ import { yadbyadDelete } from 'src/api/api.service';
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 
-
 // ----------------------------------------------------------------------
 
 export default function UserTableRow({
@@ -32,9 +30,6 @@ export default function UserTableRow({
   status,
   handleClick,
 }) {
-
-  const history = useNavigate();
-
   const [open, setOpen] = useState(null);
 
   const handleOpenMenu = (event) => {
@@ -46,19 +41,12 @@ export default function UserTableRow({
   };
 
   const handleDelete = async (e) => {
-    
     e.preventDefault();
 
     const body = {};
-    
 
-    const response = await yadbyadDelete(Routes.deleteComplain(id), body);
-    
-
-    if (response) {
-        history(0, 2000000);
-    }
-};
+    await yadbyadDelete(Routes.deleteComplain(id), body);
+  };
 
   return (
     <>
@@ -66,27 +54,29 @@ export default function UserTableRow({
         <TableCell padding="checkbox">
           <Checkbox disableRipple checked={selected} onChange={handleClick} />
         </TableCell>
-        
-        <TableCell sx={{
-            textTransform: 'capitalize'
-          }}>{subject}</TableCell>
-        
+
+        <TableCell
+          sx={{
+            textTransform: 'capitalize',
+          }}
+        >
+          {subject}
+        </TableCell>
+
         <TableCell>{message}</TableCell>
 
-
-        <TableCell>{moment(createdAt).format("L , h:mm a")} </TableCell>
+        <TableCell>{moment(createdAt).format('L , h:mm a')} </TableCell>
 
         <TableCell>
           <Label color={(status === 'completed' && 'primary') || 'error'}>{status}</Label>
         </TableCell>
 
         <TableCell>
-        {  status === "processing" ?(
-              <Typography color='error'>Not Replied Yet!</Typography>
-            ):(
-              <Typography>{reply}</Typography>
-            )
-        }
+          {status === 'processing' ? (
+            <Typography color="error">Not Replied Yet!</Typography>
+          ) : (
+            <Typography>{reply}</Typography>
+          )}
         </TableCell>
 
         <TableCell align="right">
@@ -106,15 +96,13 @@ export default function UserTableRow({
           sx: { width: 140 },
         }}
       >
-
-      <MenuItem onClick={handleCloseMenu} sx={{ color: 'error.main' }}>
-         <Stack direction='row' onClick={handleDelete}>
+        <MenuItem onClick={handleCloseMenu} sx={{ color: 'error.main' }}>
+          <Stack direction="row" onClick={handleDelete}>
             <Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />
             <Typography> Delete </Typography>
           </Stack>
-      </MenuItem>
-
-    </Popover >
+        </MenuItem>
+      </Popover>
     </>
   );
 }

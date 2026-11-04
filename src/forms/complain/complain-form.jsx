@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 
 import { Box } from '@mui/material';
@@ -12,8 +11,6 @@ import Routes from 'src/api/apiRoutes';
 import { yadbyadPost } from 'src/api/api.service';
 
 export default function ComplainForm({ handleClose }) {
-  const history = useNavigate();
-
   const [subject, setSubject] = useState('');
 
   const [message, setMessage] = useState('');
@@ -44,9 +41,6 @@ export default function ComplainForm({ handleClose }) {
 
       if (response) {
         handleClose();
-        setTimeout(() => {
-          history(0);
-        }, '500');
       }
     }
   };

@@ -2,7 +2,6 @@
 import moment from 'moment';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from "react-router-dom";
 
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
@@ -18,7 +17,6 @@ import Routes from 'src/api/apiRoutes';
 import { yadbyadDelete } from 'src/api/api.service';
 
 import Iconify from 'src/components/iconify';
-
 
 // ----------------------------------------------------------------------
 
@@ -38,9 +36,6 @@ export default function UserTableRow({
   createdAt,
   handleClick,
 }) {
-
-  const history = useNavigate();
-
   const [open, setOpen] = useState(null);
 
   const handleOpenMenu = (event) => {
@@ -51,24 +46,13 @@ export default function UserTableRow({
     setOpen(null);
   };
 
-
   const handleDelete = async (e) => {
-    
     e.preventDefault();
 
     const body = {};
-    
 
-    const response = await yadbyadDelete(Routes.deleteSchedule(id), body);
-    
-
-    if (response) {
-      setTimeout(() => {
-        history(0);
-      }, "1500");
-    }
-};
-
+    await yadbyadDelete(Routes.deleteSchedule(id), body);
+  };
 
   return (
     <>
@@ -86,30 +70,36 @@ export default function UserTableRow({
           </Stack>
         </TableCell>
 
-
         <TableCell>{studentID}</TableCell>
-        
-        <TableCell sx={{
-            textTransform: 'capitalize'
-          }}>{type}</TableCell>
 
-        <TableCell sx={{
-            textTransform: 'capitalize'
-          }}>{courseTitle}</TableCell>
-        
+        <TableCell
+          sx={{
+            textTransform: 'capitalize',
+          }}
+        >
+          {type}
+        </TableCell>
+
+        <TableCell
+          sx={{
+            textTransform: 'capitalize',
+          }}
+        >
+          {courseTitle}
+        </TableCell>
+
         <TableCell>{fcourse}</TableCell>
 
         <TableCell>{scribeTask}</TableCell>
 
         <TableCell>{bookedRoom}</TableCell>
 
-        <TableCell>{moment(date).format("L")} </TableCell>
-        <TableCell>{moment(startTime).format("h:mm a")} </TableCell>
-        <TableCell>{moment(endTime).format("h:mm a")} </TableCell>
+        <TableCell>{moment(date).format('L')} </TableCell>
+        <TableCell>{moment(startTime).format('h:mm a')} </TableCell>
+        <TableCell>{moment(endTime).format('h:mm a')} </TableCell>
 
-        <TableCell>{moment(createdAt).format("L , h:mm a")} </TableCell>
+        <TableCell>{moment(createdAt).format('L , h:mm a')} </TableCell>
 
-  
         <TableCell align="right">
           <IconButton onClick={handleOpenMenu}>
             <Iconify icon="eva:more-vertical-fill" />
@@ -127,15 +117,13 @@ export default function UserTableRow({
           sx: { width: 140 },
         }}
       >
-
         <Stack onClick={handleDelete}>
           <MenuItem onClick={handleCloseMenu} sx={{ color: 'error.main' }}>
-                <Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />
-                <Typography> Delete </Typography>
+            <Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />
+            <Typography> Delete </Typography>
           </MenuItem>
         </Stack>
-
-    </Popover >
+      </Popover>
     </>
   );
 }

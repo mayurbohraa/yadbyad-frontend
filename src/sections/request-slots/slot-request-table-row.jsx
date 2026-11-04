@@ -2,7 +2,6 @@
 import moment from 'moment';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
 
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
@@ -23,7 +22,6 @@ import Iconify from 'src/components/iconify';
 // ----------------------------------------------------------------------
 export default function UserTableRow({ id, row, handleClick, selected }) {
   const [open, setOpen] = useState(null);
-  const history = useNavigate();
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
   };
@@ -32,28 +30,22 @@ export default function UserTableRow({ id, row, handleClick, selected }) {
     setOpen(null);
   };
   async function handleRequest(update) {
-  
     const body = {
       requesteeId: row.requesteeId._id,
       eventId: row.eventId._id,
     };
 
-  
-    const response = await yadbyadPost(Routes.slotUpdate(id, update), body);
-
-    if (response) {
-      history(0, 2000000);
-    }
+    await yadbyadPost(Routes.slotUpdate(id, update), body);
   }
 
   return (
     <>
-     <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-      <TableCell padding="checkbox">
+      <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
+        <TableCell padding="checkbox">
           <Checkbox disableRipple checked={selected} onChange={handleClick} />
         </TableCell>
 
-       <TableCell component="th" scope="row">
+        <TableCell component="th" scope="row">
           <Stack direction="row" alignItems="center" spacing={2}>
             <Avatar alt={row.requesteeId?.fullName} src="/" />
             <Typography variant="subtitle2" noWrap>
@@ -66,10 +58,9 @@ export default function UserTableRow({ id, row, handleClick, selected }) {
 
         <TableCell>{row.type} </TableCell>
 
-        <TableCell>{moment(row.eventId?.date).format("L")} </TableCell>
-        <TableCell>{moment(row.eventId?.startTime).format("h:mm a")} </TableCell>
-        <TableCell>{moment(row.eventId?.endTime).format("h:mm a")} </TableCell>
-
+        <TableCell>{moment(row.eventId?.date).format('L')} </TableCell>
+        <TableCell>{moment(row.eventId?.startTime).format('h:mm a')} </TableCell>
+        <TableCell>{moment(row.eventId?.endTime).format('h:mm a')} </TableCell>
 
         <TableCell>
           <Label

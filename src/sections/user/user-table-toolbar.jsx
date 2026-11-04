@@ -29,6 +29,7 @@ export default function UserTableToolbar({ numSelected, filterName, onFilterName
         </Typography>
       ) : (
         <OutlinedInput
+          inputProps={{ 'aria-label': 'Search role' }}
           value={filterName}
           onChange={onFilterName}
           placeholder="Search role..."
@@ -42,7 +43,6 @@ export default function UserTableToolbar({ numSelected, filterName, onFilterName
           }
         />
       )}
-
     </Toolbar>
   );
 }

@@ -1,175 +1,51 @@
 import toast from 'react-hot-toast';
 
-import axiosInstance, { baseURL, getHeaders } from './axios';
-
-// Get Service
+import axiosInstance, { getHeaders } from './axios';
 
 export async function yadbyadGet(url) {
-  const response = await axiosInstance.get(url, {
-    headers: getHeaders(),
-  });
+  const response = await axiosInstance.get(url, { headers: getHeaders() });
   return response.data.data;
 }
 
-// Post Service
-
-export async function yadbyadPost(url, body) {
-  console.log('API Service - POST Request:', { url, body });
+async function sendRequest(method, url, body, multipart = false) {
   try {
-    const response = await axiosInstance.post(url, body, {
-      headers: getHeaders(),
-    });
-    toast.success(response.data.message);
-    return response.data.data;
-  } catch (err) {
-    if (err.response) {
-      if (err.response?.status === 500) {
-        toast.error('Internal Server Error!');
-      } else if (err.response?.status === 400) {
-        toast.error(err.response.data.message, {
-          icon: '⚠️',
-          style: {
-            background: '#ff9900',
-            color: '#fff',
-          },
-        });
-      } else {
-        toast.error(err.response.data.message, {
-          icon: '👎',
-          style: {
-            background: '#363636',
-            color: '#fff',
-          },
-        });
-      }
-    } else {
-      toast.error(err.message);
-    }
-    return null;
-  }
-}
-
-// Put Service
-
-export async function yadbyadPut(url, body) {
-  try {
-    const response = await axiosInstance.put(url, body, {
+    const response = await axiosInstance.request({
+      method,
+      url,
+      data: body,
       headers: {
         ...getHeaders(),
-        'Content-Type': 'multipart/form-data',
+        // Let Axios/the browser supply the multipart boundary for FormData.
+        ...(multipart || body instanceof FormData ? { 'Content-Type': undefined } : {}),
       },
     });
-    toast.success(response.data.message);
+    if (response.data.message) toast.success(response.data.message);
     return response.data.data;
-  } catch (err) {
-    if (err.response) {
-      if (err.response?.status === 500) {
-        toast.error('Internal Server Error!');
-      } else if (err.response?.status === 400) {
-        toast.error(err.response.data.message, {
-          icon: '⚠️',
-          style: {
-            background: '#ff9900',
-            color: '#fff',
-          },
-        });
-      } else {
-        toast.error(err.response.data.message, {
-          icon: '👎',
-          style: {
-            background: '#363636',
-            color: '#fff',
-          },
-        });
-      }
-    } else {
-      toast.error(err.message);
-    }
+  } catch (error) {
+    const serverMessage = error.response?.data?.message;
+    const message =
+      error.response?.status >= 500
+        ? 'The server could not complete your request. Please try again.'
+        : (typeof serverMessage === 'string' && serverMessage) ||
+          error.message ||
+          'Unable to complete the request.';
+    toast.error(message);
     return null;
   }
 }
 
-// Delete Service
-
-export async function yadbyadDelete(url, body) {
-  try {
-    const response = await axiosInstance.delete(url, body, {
-      headers: getHeaders(),
-    });
-    toast.success(response.data.message);
-    return response.data.data;
-  } catch (err) {
-    if (err.response) {
-      if (err.response?.status === 500) {
-        toast.error('Internal Server Error!');
-      } else if (err.response?.status === 400) {
-        toast.error(err.response.data.message, {
-          icon: '⚠️',
-          style: {
-            background: '#ff9900',
-            color: '#fff',
-          },
-        });
-      } else {
-        toast.error(err.response.data.message, {
-          icon: '👎',
-          style: {
-            background: '#363636',
-            color: '#fff',
-          },
-        });
-      }
-    } else {
-      toast.error(err.message);
-    }
-    return null;
-  }
+export function yadbyadPost(url, body) {
+  return sendRequest('post', url, body);
 }
 
-// Multi Part post service
+export function yadbyadPut(url, body) {
+  return sendRequest('put', url, body);
+}
 
-export async function yadbyadMultiPartPost(url, body) {
-  try {
-    const response = await fetch(baseURL + url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token_status')}`,
-      },
-      body,
-    });
-    const data = await response.json();
+export function yadbyadDelete(url, body) {
+  return sendRequest('delete', url, body);
+}
 
-    toast.success(data.message);
-    return data.data;
-  } catch (err) {
-    if (err instanceof TypeError && err.message === 'Failed to fetch') {
-      toast.error('Failed to fetch. Please check your internet connection.');
-      return null;
-    }
-
-    if (err.data) {
-      if (err.data.status === 500) {
-        toast.error('Internal Server Error!');
-      } else if (err.data.status === 400) {
-        toast.error(err.data.message, {
-          icon: '⚠️',
-          style: {
-            background: '#ff9900',
-            color: '#fff',
-          },
-        });
-      } else {
-        toast.error(err.data.message, {
-          icon: '👎',
-          style: {
-            background: '#363636',
-            color: '#fff',
-          },
-        });
-      }
-    } else {
-      toast.error(err.message);
-    }
-    return null;
-  }
+export function yadbyadMultiPartPost(url, body) {
+  return sendRequest('post', url, body, true);
 }

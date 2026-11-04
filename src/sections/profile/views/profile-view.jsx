@@ -1,325 +1,244 @@
-import { useNavigate } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { Link as RouterLink } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
-import { alpha } from '@mui/material';
 import Card from '@mui/material/Card';
-import Modal from '@mui/material/Modal';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
-import Radio from '@mui/material/Radio';
 import Button from '@mui/material/Button';
+import MenuItem from '@mui/material/MenuItem';
+import Container from '@mui/material/Container';
 import TextField from '@mui/material/TextField';
-import FormLabel from '@mui/material/FormLabel';
-import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
+import LoadingButton from '@mui/lab/LoadingButton';
 
-import { RouterLink } from 'src/routes/components';
+import { readAccount, saveAccount } from 'src/utils/account';
 
-import Routes from 'src/api/apiRoutes';
-import { yadbyadPost } from 'src/api/api.service';
+import axios from 'src/api/axios';
 import ChangePasswordForm from 'src/forms/change_password/change-password-form';
 
-import Logo from 'src/components/logo';
-import Scrollbar from 'src/components/scrollbar';
+const profileFields = [
+  ['fullName', 'Full name', 'text', 'name'],
+  ['username', 'Username', 'text', 'username'],
+  ['email', 'Email', 'email', 'email'],
+  ['mobileNumber', 'Mobile number', 'tel', 'tel'],
+];
 
 export default function Profile() {
-  const [ReadOnly, setReadOnly] = useState(true);
+  const [account, setAccount] = useState(() => readAccount());
+  const [form, setForm] = useState(() => readAccount());
+  const [editing, setEditing] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [code, setCode] = useState('');
+  const [codeBusy, setCodeBusy] = useState(false);
+  const [codeError, setCodeError] = useState('');
 
-  // eslint-disable-next-line no-unused-vars
-  const history = useNavigate();
-
-  const [open, setOpen] = useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-
-  const [_id, setId] = useState('');
-
-  const [fullName, setFullName] = useState('');
-
-  const [username, setUsername] = useState('');
-
-  const [email, setEmail] = useState('');
-
-  const [tel, setTel] = useState('');
-
-  const [gender, setGender] = useState('');
-
-  const [studentID, setStudentID] = useState('');
-
-  const [role, setRole] = useState('');
-
-  useEffect(() => {
-    const user_details = JSON.parse(localStorage.getItem('login_status'));
-
-    setId(user_details._id);
-    setFullName(user_details.fullName);
-    setUsername(user_details.username);
-    setStudentID(user_details.studentID);
-    setEmail(user_details.email);
-    setTel(user_details.mobileNumber);
-    setGender(user_details.gender);
-    setRole(user_details.role);
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setReadOnly(!ReadOnly);
-
-    const body = {
-      fullName: fullName.trim(),
-      username: username.trim(),
-      // studentID: studentID.trim(),
-      email: email.trim(),
-      mobileNumber: tel.trim(),
-      gender: gender.trim(),
-      // role: role.trim(),
-    };
-
-    const response = await yadbyadPost(Routes.editProfile(_id), body);
-
-    if (response) {
-      await localStorage.setItem('login_status', JSON.stringify(response.user));
-      setTimeout(() => {
-        history(0);
-      }, '500');
+  const save = async (event) => {
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setError('');
+    try {
+      const { fullName, username, email, mobileNumber, gender } = form;
+      const { data } = await axios.post(`/auth/users/profile/${account._id}`, {
+        fullName,
+        username,
+        email,
+        mobileNumber,
+        gender,
+      });
+      saveAccount(data.data.user);
+      setAccount(data.data.user);
+      setForm(data.data.user);
+      setEditing(false);
+      toast.success(data.message || 'Profile updated.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Unable to save your profile. Please try again.');
+    } finally {
+      setBusy(false);
     }
   };
 
-  const style = {
-    marginTop: '2%',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    width: 500,
-    // maxHeight: 640,
-    marginBottom: '2%',
-    bgcolor: 'background.paper',
-    borderRadius: 0.5,
-    boxShadow: 24,
-    p: 4,
+  const revealCode = async () => {
+    if (code) {
+      setCode('');
+      return;
+    }
+    setCodeBusy(true);
+    setCodeError('');
+    try {
+      const { data } = await axios.get('/auth/recovery/code');
+      setCode(data.data.recoveryCode);
+    } catch (err) {
+      setCodeError(
+        err.response?.data?.message || 'Unable to load your recovery code. Please try again.'
+      );
+    } finally {
+      setCodeBusy(false);
+    }
   };
 
+  if (!account) return null;
+
   return (
-    <>
-      <Box sx={{ bgcolor: (theme) => alpha(theme.palette.grey[1000], 1) }}>
-        <Logo sx={{ mt: 2, mb: 2, ml: 4 }} />
-      </Box>
-
-      <Box sx={{ m: 0 }}>
-        <Card sx={{ p: 4 }}>
-          <CardHeader
-            sx={{
-              pb: 5,
-            }}
-            title={`${
-              ReadOnly
-                ? 'View Profile'
-                : "Edit Profile | Note: You can't update Student ID and Role"
-            } `}
-          />
-
-          <Stack>
-            <Grid container>
-              <Grid xs={12} md={5} my={2} mx={4}>
-                <Stack>
-                  <TextField
-                    type="text"
-                    id="fullname"
-                    name="fullname"
-                    label="Name"
-                    value={fullName}
-                    autoComplete="off"
-                    inputProps={{
-                      readOnly: ReadOnly,
-                    }}
-                    onChange={(e) => setFullName(e.target.value)}
-                  />
-                </Stack>
-              </Grid>
-
-              <Grid xs={12} md={5} my={2} mx={4}>
-                <Stack>
-                  <TextField
-                    type="text"
-                    id="username"
-                    name="username"
-                    label="Username"
-                    autoComplete="off"
-                    value={username}
-                    helperText="Username Format : FS202312345"
-                    inputProps={{
-                      readOnly: ReadOnly,
-                    }}
-                    onChange={(e) => setUsername(e.target.value)}
-                  />
-                </Stack>
-              </Grid>
-
-              <Grid xs={12} md={5} my={2} mx={4}>
-                <Stack>
-                  <TextField
-                    type="text"
-                    id="studentID"
-                    name="studentID"
-                    label="Student ID"
-                    autoComplete="off"
-                    value={studentID}
-                    readOnly
-                    onChange={(e) => setStudentID(e.target.value)}
-                  />
-                </Stack>
-              </Grid>
-
-              <Grid xs={12} md={5} my={2} mx={4}>
-                <Stack>
-                  <TextField
-                    type="email"
-                    id="email"
-                    name="email"
-                    label="Email"
-                    value={email}
-                    autoComplete="off"
-                    inputProps={{
-                      readOnly: ReadOnly,
-                    }}
-                    onChange={(e) => setEmail(e.target.value)}
-                    helperText="Email Format : abc@qu.edu.qa"
-                  />
-                </Stack>
-              </Grid>
-
-              <Grid xs={12} md={5} my={2} mx={4}>
-                <Stack>
-                  <TextField
-                    type="tel"
-                    id="tel"
-                    name="tel"
-                    label="Mobile Number"
-                    // placeholder={validTel}
-                    value={tel}
-                    autoComplete="off"
-                    inputProps={{
-                      readOnly: ReadOnly,
-                    }}
-                    onChange={(e) => setTel(e.target.value)}
-                    helperText="Mobile Number Format : +974 1234 5678"
-                  />
-                </Stack>
-              </Grid>
-
-              <Grid xs={12} md={5} my={2} mx={4}>
-                <Stack>
-                  <FormLabel id="demo-row-radio-buttons-group-label" required>
-                    Gender
-                  </FormLabel>
-                  <RadioGroup
-                    row
-                    aria-labelledby="demo-row-radio-buttons-group-label"
-                    name="row-radio-buttons-group"
-                    onChange={(e) => setGender(e.target.value)}
-                  >
-                    <FormControlLabel
-                      checked={gender === 'female'}
-                      value="female"
-                      control={<Radio />}
-                      label="Female"
-                      inputProps={{
-                        readOnly: ReadOnly,
-                      }}
-                    />
-                    <FormControlLabel
-                      checked={gender === 'male'}
-                      value="male"
-                      control={<Radio />}
-                      label="Male"
-                      inputProps={{
-                        readOnly: ReadOnly,
-                      }}
-                    />
-                  </RadioGroup>
-                </Stack>
-              </Grid>
-
-              <Grid xs={12} md={5} my={2} mx={4}>
-                <Stack>
-                  <FormLabel id="demo-row-radio-buttons-group-label" required>
-                    Role
-                  </FormLabel>
-                  <RadioGroup
-                    row
-                    aria-labelledby="demo-row-radio-buttons-group-label"
-                    name="row-radio-buttons-group"
-                    onChange={(e) => setRole(e.target.value)}
-                  >
-                    <FormControlLabel
-                      checked={role === 'special need student'}
-                      value="special need student"
-                      control={<Radio />}
-                      label="Special Need Student"
-                      readOnly
-                    />
-                    <FormControlLabel
-                      checked={role === 'part time student'}
-                      value="part time student"
-                      control={<Radio />}
-                      label="Part Time Student"
-                      readOnly
-                    />
-                    <FormControlLabel
-                      checked={role === 'admin'}
-                      value="admin"
-                      control={<Radio />}
-                      label="Admin"
-                      readOnly
-                    />
-                  </RadioGroup>
-                </Stack>
-              </Grid>
-            </Grid>
-          </Stack>
-
-          <Stack spacing={2} direction="row" justifyContent="flex-end" alignItems="center">
-            <Button href="/dashboard" variant="contained" component={RouterLink}>
-              Go to Home
-            </Button>
-
-            <Button variant="contained" color="primary" onClick={handleOpen}>
-              Change Password
-            </Button>
-
-            {ReadOnly ? (
-              <Button variant="contained" color="primary" onClick={() => setReadOnly(!ReadOnly)}>
-                Edit Profile
-              </Button>
-            ) : (
-              <Button variant="contained" color="primary" onClick={handleSubmit}>
-                Save Details
-              </Button>
-            )}
-          </Stack>
-
-          <Modal
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
-          >
-            <Scrollbar>
-              <Box sx={style}>
-                <Typography id="modal-modal-title" variant="h6" component="h2">
-                  Change Password
+    <Container maxWidth="xl" sx={{ pb: 5 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Typography component="h1" variant="h4">
+          My Profile
+        </Typography>
+        <Button component={RouterLink} to="/dashboard">
+          Back to dashboard
+        </Button>
+      </Stack>
+      <Grid container spacing={3}>
+        <Grid item xs={12} lg={7}>
+          <Card sx={{ p: { xs: 2.5, sm: 4 } }}>
+            <Stack component="form" spacing={3} onSubmit={save}>
+              <Box>
+                <Typography component="h2" variant="h6">
+                  Personal details
                 </Typography>
-                <hr />
-                <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                  <ChangePasswordForm handleClose={handleClose} />
+                <Typography color="text.secondary">
+                  Keep your account information up to date.
                 </Typography>
               </Box>
-            </Scrollbar>
-          </Modal>
-        </Card>
-      </Box>
-    </>
+              {error && <Alert severity="error">{error}</Alert>}
+                      <Box>
+                <Grid container spacing={2}>
+                  {profileFields.map(([name, label, type, autoComplete]) => (
+                    <Grid item xs={12} sm={6} key={name}>
+                      <TextField
+                        fullWidth
+                        required
+                        label={label}
+                        type={type}
+                        autoComplete={autoComplete}
+                        value={form[name] || ''}
+                        onChange={(e) => setForm({ ...form, [name]: e.target.value })}
+                        InputProps={{ readOnly: !editing }}
+                        inputProps={
+                          name === 'username'
+                            ? { pattern: '[A-Za-z0-9]{4,30}', maxLength: 30 }
+                            : { maxLength: name === 'email' ? 254 : 100 }
+                        }
+                      />
+                    </Grid>
+                  ))}
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      required
+                      select
+                      label="Gender"
+                      value={form.gender || ''}
+                      disabled={!editing}
+                      onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                    >
+                      <MenuItem value="female">Female</MenuItem>
+                      <MenuItem value="male">Male</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Student ID"
+                      value={account.studentID || ''}
+                      InputProps={{ readOnly: true }}
+                      helperText="Your account identifier cannot be changed here."
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Account role"
+                      value={account.role}
+                      InputProps={{ readOnly: true }}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+              <Stack direction="row" spacing={2}>
+                {editing ? (
+                  <>
+                    <LoadingButton type="submit" variant="contained" loading={busy}>
+                      Save changes
+                    </LoadingButton>
+                    <Button
+                      disabled={busy}
+                      onClick={() => {
+                        setForm(account);
+                        setEditing(false);
+                        setError('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      setEditing(true);
+                                      }}
+                  >
+                    Edit profile
+                  </Button>
+                )}
+              </Stack>
+            </Stack>
+          </Card>
+        </Grid>
+        <Grid item xs={12} lg={5}>
+          <Stack spacing={3}>
+            <Card sx={{ p: { xs: 2.5, sm: 4 } }}>
+              <Stack spacing={2}>
+                <Typography component="h2" variant="h6">
+                  Account recovery
+                </Typography>
+                <Typography color="text.secondary">
+                  Save this code privately to reset your password.
+                </Typography>
+                {codeError && <Alert severity="error">{codeError}</Alert>}
+                {code && (
+                  <Box
+                    component="output"
+                    aria-label="Your recovery code"
+                    sx={{
+                      fontFamily: 'monospace',
+                      fontSize: { xs: 16, sm: 20 },
+                      overflowWrap: 'anywhere',
+                      bgcolor: 'action.hover',
+                      borderRadius: 1,
+                      p: 2,
+                      userSelect: 'all',
+                    }}
+                  >
+                    {code}
+                  </Box>
+                )}
+                <LoadingButton
+                  loading={codeBusy}
+                  variant="outlined"
+                  onClick={revealCode}
+                  aria-expanded={!!code}
+                  sx={{ alignSelf: 'flex-start' }}
+                >
+                  {code ? 'Hide recovery code' : 'Reveal recovery code'}
+                </LoadingButton>
+              </Stack>
+            </Card>
+            <Card sx={{ p: { xs: 2.5, sm: 4 } }}>
+              <Typography component="h2" variant="h6" sx={{ mb: 3 }}>
+                Change password
+              </Typography>
+              <ChangePasswordForm />
+            </Card>
+          </Stack>
+        </Grid>
+      </Grid>
+    </Container>
   );
 }

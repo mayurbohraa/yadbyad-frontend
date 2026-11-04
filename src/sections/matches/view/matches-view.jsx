@@ -1,4 +1,4 @@
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -8,6 +8,8 @@ import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
+
+import useApiRefresh from 'src/hooks/use-api-refresh';
 
 import Routes from 'src/api/apiRoutes';
 import { yadbyadGet } from 'src/api/api.service';
@@ -40,7 +42,7 @@ export default function MatchesView() {
 
   const [dataFiltered, setDataFiltered] = useState([]);
 
-  const [notFound,setNotFound] = useState(true);
+  const [notFound, setNotFound] = useState(true);
 
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
@@ -92,43 +94,49 @@ export default function MatchesView() {
   };
 
   useEffect(() => {
-    if(!matches.length){
+    if (!matches.length) {
       fetchMatches();
     }
-    
+
     const dataFilteredValue = applyFilter({
       inputData: matches,
       comparator: getComparator(order, orderBy),
       filterName,
     });
-  
-  setDataFiltered(dataFilteredValue);
-  setNotFound(!dataFilteredValue.length && !!filterName);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order,orderBy,filterName]);
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order, orderBy, filterName]);
 
   const fetchMatches = async (e) => {
-    const response = await yadbyadGet(Routes.fetchmatches);   
-    setMatches(response??[]);   
+    const response = await yadbyadGet(Routes.fetchmatches);
+    setMatches(response ?? []);
     const dataFilteredValue = applyFilter({
-      inputData: response??[],
+      inputData: response ?? [],
       comparator: getComparator(order, orderBy),
       filterName,
     });
-    setDataFiltered(dataFilteredValue); 
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
+    setPage((current) =>
+      Math.min(current, Math.max(0, Math.ceil(dataFilteredValue.length / rowsPerPage) - 1))
+    );
   };
 
   const user_details = JSON.parse(localStorage.getItem('login_status'));
 
+  useApiRefresh(fetchMatches, ['/slot', '/casual', '/lecture', '/schedule']);
+
   return (
     <Container>
       <Stack mb={5}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-        <Typography variant="h4">Matches</Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+          <Typography variant="h4">Matches</Typography>
+        </Stack>
+        <Typography variant="subtitle1">Students Match Details</Typography>
       </Stack>
-      <Typography variant='subtitle1'>Students Match Details</Typography>
-       </Stack>
 
       <Card>
         <UserTableToolbar
@@ -140,51 +148,49 @@ export default function MatchesView() {
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
             <Table sx={{ minWidth: 800 }}>
-              
-              
-        {user_details.role === 'special need student' && (
-          <UserTableHead
-          order={order}
-          orderBy={orderBy}
-          rowCount={matches.length}
-          numSelected={selected.length}
-          onRequestSort={handleSort}
-          onSelectAllClick={handleSelectAllClick}
-          headLabel={[
-            { id: 'fullName', label:'Part Time Student Name'},
-            { id: 'studentID', label:'Student ID'},
-            { id: 'mobile No.', label: 'Mobile No.' },
-            { id: 'type', label:'Type'},
-            { id: 'room', label: 'Booked Room' },
-            { id: 'date', label: 'Date' },
-            { id: 'startTime', label: 'Start Time' },
-            { id: 'endTime', label: 'End Time' },
-            { id: 'status', label: 'Status' },
-          ]}
-        />
-        )}
-        
-        {user_details.role === 'part time student' && (
-          <UserTableHead
-          order={order}
-          orderBy={orderBy}
-          rowCount={matches.length}
-          numSelected={selected.length}
-          onRequestSort={handleSort}
-          onSelectAllClick={handleSelectAllClick}
-          headLabel={[
-            { id: 'fullName', label: 'Special Need Student Name' },
-            { id: 'studentID', label: 'Student ID' },
-            { id: 'mobile No.', label: 'Mobile No.' },
-            { id: 'type', label:'Type'},
-            { id: 'room', label: 'Booked Room' },
-            { id: 'date', label: 'Date' },
-            { id: 'startTime', label: 'Start Time' },
-            { id: 'endTime', label: 'End Time' },
-            { id: 'status', label: 'Status' },
-          ]}
-        />
-        )}
+              {user_details.role === 'special need student' && (
+                <UserTableHead
+                  order={order}
+                  orderBy={orderBy}
+                  rowCount={matches.length}
+                  numSelected={selected.length}
+                  onRequestSort={handleSort}
+                  onSelectAllClick={handleSelectAllClick}
+                  headLabel={[
+                    { id: 'fullName', label: 'Part Time Student Name' },
+                    { id: 'studentID', label: 'Student ID' },
+                    { id: 'mobile No.', label: 'Mobile No.' },
+                    { id: 'type', label: 'Type' },
+                    { id: 'room', label: 'Booked Room' },
+                    { id: 'date', label: 'Date' },
+                    { id: 'startTime', label: 'Start Time' },
+                    { id: 'endTime', label: 'End Time' },
+                    { id: 'status', label: 'Status' },
+                  ]}
+                />
+              )}
+
+              {user_details.role === 'part time student' && (
+                <UserTableHead
+                  order={order}
+                  orderBy={orderBy}
+                  rowCount={matches.length}
+                  numSelected={selected.length}
+                  onRequestSort={handleSort}
+                  onSelectAllClick={handleSelectAllClick}
+                  headLabel={[
+                    { id: 'fullName', label: 'Special Need Student Name' },
+                    { id: 'studentID', label: 'Student ID' },
+                    { id: 'mobile No.', label: 'Mobile No.' },
+                    { id: 'type', label: 'Type' },
+                    { id: 'room', label: 'Booked Room' },
+                    { id: 'date', label: 'Date' },
+                    { id: 'startTime', label: 'Start Time' },
+                    { id: 'endTime', label: 'End Time' },
+                    { id: 'status', label: 'Status' },
+                  ]}
+                />
+              )}
 
               <TableBody>
                 {dataFiltered
@@ -200,7 +206,7 @@ export default function MatchesView() {
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, matches.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, dataFiltered.length)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -212,7 +218,7 @@ export default function MatchesView() {
         <TablePagination
           page={page}
           component="div"
-          count={matches.length}
+          count={dataFiltered.length}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25, 50]}

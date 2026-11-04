@@ -1,45 +1,59 @@
-/* eslint-disable jsx-a11y/no-static-element-interactions */
-/* eslint-disable react/prop-types */
 import { useState } from 'react';
+import { format } from 'date-fns';
+import PropTypes from 'prop-types';
 
-import './css/DayCell.css';
+import Box from '@mui/material/Box';
+import ButtonBase from '@mui/material/ButtonBase';
+import Typography from '@mui/material/Typography';
+
 import { EventModal } from './modal';
 
-// eslint-disable-next-line react/prop-types
-const DayCell = ({ children, className, isActive = false, hasEvents }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export default function DayCell({ date, isActive, events }) {
+  const [open, setOpen] = useState(false);
+  const hasEvents = events.length > 0;
 
-  // Function to handle clicking on a day in the calendar grid
-  const handleModal = () => {
-    setIsModalOpen(!isModalOpen);
-  };
-  
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events
-    <div
-      onClick={
-        hasEvents.length > 0
-          ? handleModal
-          : () => {
-              // console.log('hello');
-            }
-      }
-      className={`custom-day-cell ${isActive && 'active-cell'} ${className}`}
+    <Box
+      sx={{
+        minHeight: { xs: 55, sm: 82 },
+        bgcolor: isActive ? 'primary.lighter' : 'background.paper',
+      }}
     >
-      <div>
-        <div className="">{children}</div>
-        {hasEvents.length > 0 && (
-          <div className="font-bold bg-red-200 p-1 rounded-md text-sm inline">
-            {hasEvents.length} Events
-          </div>
+      <ButtonBase
+        component={hasEvents ? 'button' : 'div'}
+        onClick={hasEvents ? () => setOpen(true) : undefined}
+        aria-label={hasEvents ? `${format(date, 'PP')}, ${events.length} events` : undefined}
+        aria-current={isActive ? 'date' : undefined}
+        sx={{
+          width: 1,
+          height: 1,
+          p: 0.75,
+          minHeight: 'inherit',
+          alignItems: 'flex-start',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
+          cursor: hasEvents ? 'pointer' : 'default',
+          '&.Mui-focusVisible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: -2,
+          },
+        }}
+      >
+        <Typography variant="body2">{date.getDate()}</Typography>
+        {hasEvents && (
+          <Typography variant="caption" color="primary.dark">
+            {events.length} {events.length === 1 ? 'event' : 'events'}
+          </Typography>
         )}
-      </div>
-      {hasEvents.length > 0 && <div className="custom-badge">{hasEvents.length}</div>}
-      {hasEvents.length > 0 && (
-        <EventModal events={hasEvents} date={children} isOpen={isModalOpen} close={handleModal} />
-      )}
-    </div>
+      </ButtonBase>
+      {open && <EventModal events={events} isOpen={open} close={() => setOpen(false)} />}
+    </Box>
   );
-};
+}
 
-export default DayCell;
+DayCell.propTypes = {
+  date: PropTypes.instanceOf(Date).isRequired,
+  isActive: PropTypes.bool.isRequired,
+  events: PropTypes.array.isRequired,
+};

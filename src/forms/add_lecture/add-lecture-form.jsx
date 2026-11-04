@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import toast from 'react-hot-toast';
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -9,12 +8,10 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { Checkbox, FormControl, FormControlLabel } from '@mui/material';
 
-import Routes from 'src/api/apiRoutes';
-import { yadbyadPost } from 'src/api/api.service';
+import Routes from '../../api/apiRoutes';
+import { yadbyadPost } from '../../api/api.service';
 
 export default function AddLectureForm({ handleClose, setEvents }) {
-  const history = useNavigate();
-
   const [month, setMonth] = useState('');
   const [endTime, setEndTime] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -65,9 +62,6 @@ export default function AddLectureForm({ handleClose, setEvents }) {
 
       if (response) {
         handleClose();
-        setTimeout(() => {
-          history(0);
-        }, '500');
 
         // method 1
         // const newEvents = [...events,response.data];

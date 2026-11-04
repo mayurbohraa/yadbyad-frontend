@@ -1,79 +1,78 @@
-import React from 'react';
-import { add, sub, format, startOfDay, endOfMonth, startOfMonth, differenceInDays } from 'date-fns';
+import PropTypes from 'prop-types';
+import { format, addMonths, isSameDay, startOfMonth, getDaysInMonth } from 'date-fns';
 
-import { Button } from '@mui/material';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 
-import Cell from './Cell';
-import './css/Calendar.css';
 import DayCell from './DayCell';
 
-const weeks = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// eslint-disable-next-line react/prop-types
-const Calendar = ({ value = new Date(), onChange, events }) => {
-  // Your prevMonth, nextMonth, prefixDays, suffixDays, weeks, and numDays logic goes here
-  const startDate = startOfMonth(value);
-  const endDate = endOfMonth(value);
-  const numDays = differenceInDays(endDate, startDate) + 1;
-
-  const prefixDays = startDate.getDay();
-  const suffixDays = 6 - endDate.getDay();
-
-  const prevMonth = () => onChange(sub(value, { months: 1 }));
-  const nextMonth = () => onChange(add(value, { months: 1 }));
-  const goToToday = () => onChange(startOfDay(new Date()));
-
-
-  // Function to check if there are any events for a particular date
-  function hasEvents(date) {
-    const cellDate = new Date(value.getFullYear(), value.getMonth(), date); // Construct a new Date object with the current date
-    // eslint-disable-next-line react/prop-types
-    return events?.filter((event) => {
-      const eventDate = new Date(event.date);
-      return eventDate.toDateString() === cellDate.toDateString();
-    });
-  }
+export default function Calendar({ value, onChange, events }) {
+  const firstDay = startOfMonth(value);
+  const today = new Date();
+  const offset = firstDay.getDay();
 
   return (
-    <div className="custom-container">
-      <div className="custom-flex">
-        <div>
-          <Button onClick={goToToday}>Today</Button>
-          <Button onClick={prevMonth}>Prev</Button>
-          <Button onClick={nextMonth}>Next</Button>
-        </div>
-        <span className="custom-span">{format(value, 'LLLL yyyy')}</span>
-      </div>
-      <div className="custom-grid">
-        <div className="">
-          {weeks.map((week) => (
-            <Cell className="h-2" key={week}>
-              {week}
-            </Cell>
-          ))}
-
-          {Array.from({ length: prefixDays }).map((_, index) => (
-            <Cell className="h-5" key={index} />
-          ))}
-
-          {Array.from({ length: numDays }).map((_, index) => {
-            const date = index + 1;
-            const isCurrentDate =
-              date === new Date().getDate() && value.getMonth() === new Date().getMonth();
-            return (
-              <DayCell key={date} isActive={isCurrentDate} hasEvents={hasEvents(date)}>
-                {date}
-              </DayCell>
-            );
-          })}
-
-          {Array.from({ length: suffixDays }).map((_, index) => (
-            <Cell className="h-5" key={index} />
-          ))}
-        </div>
-      </div>
-    </div>
+    <Card sx={{ overflowX: 'auto' }}>
+      <Stack
+        direction="row"
+        flexWrap="wrap"
+        alignItems="center"
+        justifyContent="space-between"
+        gap={1}
+        sx={{ p: 2 }}
+      >
+        <Typography component="h2" variant="h6">
+          {format(value, 'LLLL yyyy')}
+        </Typography>
+        <Stack direction="row" spacing={0.5}>
+          <Button onClick={() => onChange(new Date())}>Today</Button>
+          <Button aria-label="Previous month" onClick={() => onChange(addMonths(value, -1))}>
+            Prev
+          </Button>
+          <Button aria-label="Next month" onClick={() => onChange(addMonths(value, 1))}>
+            Next
+          </Button>
+        </Stack>
+      </Stack>
+      <Box
+        sx={{
+          display: 'grid',
+          minWidth: 350,
+          gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
+          bgcolor: 'background.neutral',
+          gap: '1px',
+        }}
+      >
+        {weekdays.map((day) => (
+          <Typography key={day} variant="subtitle2" align="center" sx={{ py: 1 }}>
+            {day}
+          </Typography>
+        ))}
+        {Array.from({ length: offset + getDaysInMonth(value) }, (_, index) => {
+          const day = new Date(value.getFullYear(), value.getMonth(), index - offset + 1);
+          if (index < offset)
+            return <Box key={day.toISOString()} sx={{ bgcolor: 'background.paper' }} />;
+          return (
+            <DayCell
+              key={day.toISOString()}
+              date={day}
+              isActive={isSameDay(day, today)}
+              events={events.filter((event) => isSameDay(new Date(event.date), day))}
+            />
+          );
+        })}
+      </Box>
+    </Card>
   );
-};
+}
 
-export default Calendar;
+Calendar.propTypes = {
+  value: PropTypes.instanceOf(Date).isRequired,
+  onChange: PropTypes.func.isRequired,
+  events: PropTypes.array.isRequired,
+};

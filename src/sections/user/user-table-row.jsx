@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
 
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
@@ -30,8 +29,6 @@ export default function UserTableRow({
   role,
   handleClick,
 }) {
-  const history = useNavigate();
-
   const [open, setOpen] = useState(null);
 
   const handleOpenMenu = (event) => {
@@ -43,20 +40,11 @@ export default function UserTableRow({
   };
 
   const handleDelete = async (e) => {
-    
     e.preventDefault();
 
     const body = {};
-    
 
-    const response = await yadbyadDelete(Routes.deleteUser(id), body);
-    
-
-    if (response) {
-      setTimeout(() => {
-        history(0);
-      }, '1500');
-    }
+    await yadbyadDelete(Routes.deleteUser(id), body);
   };
 
   return (

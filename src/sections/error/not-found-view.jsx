@@ -1,73 +1,48 @@
+import { Link } from 'react-router-dom';
+
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
-import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
-import { RouterLink } from 'src/routes/components';
-
-import Logo from 'src/components/logo'
-
-// ----------------------------------------------------------------------
+import Logo from 'src/components/logo';
 
 export default function NotFoundView() {
-  const renderHeader = (
+  return (
     <Box
-      component="header"
       sx={{
-        top: 0,
-        left: 0,
-        width: 1,
-        lineHeight: 0,
-        position: 'fixed',
-        p: (theme) => ({ xs: theme.spacing(3, 3, 0), sm: theme.spacing(5, 5, 0) }),
+        minHeight: '100dvh',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: 'background.default',
       }}
     >
-      <Logo />
-    </Box>
-  );
-
-  return (
-    <Box sx={{ bgcolor: '#164231' }}>
-      {renderHeader}
-
-      <Container>
+      <Box component="header" sx={{ bgcolor: '#164231', px: { xs: 3, md: 5 }, py: 2 }}>
+        <Logo sx={{ width: 150 }} />
+      </Box>
+      <Stack
+        component="main"
+        spacing={2}
+        alignItems="center"
+        justifyContent="center"
+        sx={{ flex: 1, textAlign: 'center', px: 3, py: 4 }}
+      >
         <Box
-          sx={{
-            // py: 10,
-            maxWidth: 480,
-            mx: 'auto',
-            display: 'flex',
-            minHeight: '100vh',
-            textAlign: 'center',
-            alignItems: 'center',
-            flexDirection: 'column',
-            justifyContent: 'center',
-          }}
-        >
-          <Typography variant="h3" sx={{ mb: 3, color: 'text.primary_one' }}>
-            Sorry, page not found!
-          </Typography>
-
-          <Typography sx={{ color: 'text.secondary_one' }}>
-            Sorry, we couldn’t find the page you’re looking for. Perhaps you’ve mistyped the URL? Be
-            sure to check your spelling.
-          </Typography>
-
-          <Box
-            component="img"
-            src="/assets/illustrations/illustration_404.svg"
-            sx={{
-              mx: 'auto',
-              height: 260,
-              my: { xs: 5, sm: 10 },
-            }}
-          />
-
-          <Button href="/dashboard" size="large" variant="contained" component={RouterLink}>
-            Go to Home
-          </Button>
-        </Box>        
-      </Container>
+          component="img"
+          src="/assets/illustrations/illustration_404.svg"
+          alt=""
+          sx={{ width: '100%', maxWidth: 280, maxHeight: '34dvh', objectFit: 'contain' }}
+        />
+        <Typography component="h1" variant="h4">
+          Page not found
+        </Typography>
+        <Typography color="text.secondary">
+          The link may be outdated or the address may be incorrect.
+        </Typography>
+        <Button component={Link} to="/" replace variant="contained" color="inherit" size="large">
+          Go to home
+        </Button>
+      </Stack>
     </Box>
   );
 }

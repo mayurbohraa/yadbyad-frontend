@@ -1,4 +1,4 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -9,8 +9,10 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
+import useApiRefresh from 'src/hooks/use-api-refresh';
+
 import Routes from 'src/api/apiRoutes';
-import { yadbyadGet } from 'src/api/api.service'; 
+import { yadbyadGet } from 'src/api/api.service';
 
 import Scrollbar from 'src/components/scrollbar';
 
@@ -40,7 +42,7 @@ export default function ResourcesView() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [notFound,setNotFound] = useState(true);
+  const [notFound, setNotFound] = useState(true);
 
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
@@ -58,7 +60,7 @@ export default function ResourcesView() {
     }
     setSelected([]);
   };
- 
+
   const handleClick = (event, title) => {
     const selectedIndex = selected.indexOf(title);
     let newSelected = [];
@@ -92,46 +94,49 @@ export default function ResourcesView() {
   };
 
   useEffect(() => {
-    if(!resource.length){
+    if (!resource.length) {
       fetchResources();
     }
-    
+
     const dataFilteredValue = applyFilter({
       inputData: resource,
       comparator: getComparator(order, orderBy),
       filterName,
     });
-  
-  setDataFiltered(dataFilteredValue);
-  setNotFound(!dataFilteredValue.length && !!filterName);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order,orderBy,filterName]);
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order, orderBy, filterName]);
 
   const fetchResources = async (e) => {
-    const response = await yadbyadGet(Routes.fetchResources);   
-    setResource(response??[]);   
+    const response = await yadbyadGet(Routes.fetchResources);
+    setResource(response ?? []);
     const dataFilteredValue = applyFilter({
-      inputData: response??[],
+      inputData: response ?? [],
       comparator: getComparator(order, orderBy),
       filterName,
     });
-    setDataFiltered(dataFilteredValue); 
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
+    setPage((current) =>
+      Math.min(current, Math.max(0, Math.ceil(dataFilteredValue.length / rowsPerPage) - 1))
+    );
   };
 
+  useApiRefresh(fetchResources, ['/library']);
 
   return (
     <Container>
       <Stack mb={5}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-        <Typography variant="h4">Resources</Typography>
-       </Stack>
-      <Typography variant='subtitle1'>Resources Details</Typography>
-       </Stack>
-      
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+          <Typography variant="h4">Resources</Typography>
+        </Stack>
+        <Typography variant="subtitle1">Resources Details</Typography>
+      </Stack>
 
-       <Card>
+      <Card>
         <UserTableToolbar
           numSelected={selected.length}
           filterName={filterName}
@@ -150,8 +155,8 @@ export default function ResourcesView() {
                 onSelectAllClick={handleSelectAllClick}
                 headLabel={[
                   { id: 'title', label: 'Title' },
-                  { id: 'description', label:'Description'},
-                  { id: 'url', label:'Resource'},
+                  { id: 'description', label: 'Description' },
+                  { id: 'url', label: 'Resource' },
                 ]}
               />
               <TableBody>
@@ -171,7 +176,7 @@ export default function ResourcesView() {
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, resource.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, dataFiltered.length)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -183,14 +188,13 @@ export default function ResourcesView() {
         <TablePagination
           page={page}
           component="div"
-          count={resource.length}
+          count={dataFiltered.length}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25, 50]}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Card>
-   
     </Container>
   );
 }

@@ -1,68 +1,88 @@
-**YadByad — Frontend**
+# Yad Byad Frontend
 
-**Project Overview**
-- **Purpose:** A platform that connects **special needs students** with peers for academic support, offering an accessible and intuitive interface designed for ease of use and inclusivity.
-- **Scope:** Frontend implemented independently — component architecture, reusable UI primitives, responsive layouts, and complete **API integration** to communicate with the backend services.
+Yad Byad is a college-project student support platform developed through a freelance engagement. The frontend connects students with special needs, part-time student supporters, and administrators through role-based screens.
 
-**Codebase Analysis**
-- **Architecture:** The app follows a component-driven structure with isolated folders for `components`, `forms`, `pages`, `routes`, `api` and `theme` to keep concerns separated and make the UI easy to maintain and extend.
-- **API layer:** Centralized API helpers handle GET/POST/PUT/DELETE calls, token-based authorization, and multipart uploads.
-- **State & UX:** Forms and pages use local component state and small custom hooks for responsiveness and common behaviors (scroll-to-top, localStorage helpers, etc.).
-- **Styling & Theming:** Theme tokens and overrides are in the theme folder allowing consistent palette/shadow/typography across components.
+## Key features
 
-**Key Features**
-- **Authentication & Roles:** Login with role-based behaviors (Admin, Special Needs Student, Part-time Student).
-- **Responsive UI:** Mobile-first responsive layouts and accessible components.
-- **Modular Components:** Reusable UI pieces (labels, icons, scrollbars, SVG color helpers) for fast feature development.
-- **API Integration:** Centralized API service with success/error toasts, file uploads, and error handling.
-- **Forms & Validation:** Multiple form flows for creating resources, scheduling, complaints, and reports.
-- **Scheduling & Slot Management:** Create and request slots, manage schedules and match sessions.
-- **Notifications & Reports:** Read/mark notifications, submit and manage reports.
-- **Theming & Customization:** Centralized theme tokens and overrides for consistent branding.
+- Public student signup, sign-in, and guarded account pages.
+- Schedules, session requests, matching, and shared resource views.
+- Complaint submission, report slots, submitted reports, and administrator management screens.
+- Editable profiles, password changes, and recovery-code password reset.
+- Administrator-reviewed recovery requests with private dashboard notifications; no email delivery.
+- Signup format information icons and scrolling confined to the form fields.
 
-**Install & Run (Frontend)**
-- **Prerequisites:** Install Node.js and npm. Verify with:
+## Live website
 
-```
-node -v
-npm -v
-```
+https://yadbyad-frontend.vercel.app/
 
-- **Install dependencies:**
+The latest local improvements have not been deployed.
 
-```
-npm install
-```
+## Tech stack
 
-- **Start development server:**
+React 18, Vite 4, Material UI 5, Emotion, React Router 6, Axios, React Hot Toast, and date-fns. The dashboard also contains an IBM Watson Assistant embed; service availability has not been verified.
 
-```
+## Prerequisites
+
+Node.js, npm, and the running Yad Byad backend. Verification used Node.js 24.13.0 and npm 11.12.1; no Node engine version is pinned in the package.
+
+## Installation and setup
+
+1. Open this repository's folder, `YadByad_Frontend`.
+2. Run `npm ci`.
+3. If the API address needs changing, copy `.env.example` to `.env.local` without overwriting an existing file.
+4. Set `VITE_API_URL=http://localhost:9000/api/v1` for the local backend.
+5. Start the backend from its own repository, then run `npm run dev` here.
+6. Open http://localhost:3030/. Vite may choose another port if it is occupied.
+
+Development defaults to the backend on port 9000; production defaults to the supplied backend address. `VITE_API_URL` overrides either default at build time and must include `/api/v1`. Client environment values are public and must not contain secrets.
+
+## Running and verification
+
+```sh
 npm run dev
-```
-
-**Backend (if running locally)**
-- The frontend expects a backend API at the configured `baseURL` in `src/api/axios.js`. If you have the backend source, install dependencies and run it with:
-
-```
-npm install
+npm run lint
+npm run build
 npm run start
 ```
 
-**Standard User Logins**
-- **Admin:**
-  - **Username:** admin123456
-  - **Email:** admin123456@qu.edu.qa
-  - **Password:** Admin@123
-- **Special Need Student:**
-  - **Username:** sn123456
-  - **Email:** sns@qu.edu.qa
-  - **Password:** Student@123
-- **Part Time Student:**
-  - **Username:** pt123456
-  - **Email:** pts@qu.edu.qa
-  - **Password:** Student@123
+`npm run start` previews the production build locally. Lint and the production build passed after folder organization. The main bundle retains a warning for exceeding 500 kB. Desktop/mobile browser checks passed for the updated authentication screens, dashboard navigation, and profile layout. A comprehensive audit of all legacy workflows remains outstanding.
 
-**Notes & Next Steps**
-- The frontend stores the JWT token in `localStorage` and uses it for authorization headers. To debug API calls, open the browser Network tab to inspect requests and responses.
-- If you want, I can add a short debugging helper that logs outgoing requests and responses to the console or enable retry/backoff for failed requests.
+## Account behavior
 
+Students can create an account at `/signup`. Public signup cannot create administrators. My Profile allows personal-detail edits, recovery-code reveal/hide, and a current-password-verified password change; student ID and role remain read-only there.
+
+Save the recovery code privately. Password reset verifies the email and saved code before accepting a new password. A forgotten-code request goes to the administrator under **Account Recovery**. Acceptance creates a dashboard notification only; it does not send email, reveal a code, or bypass verification.
+
+## Project structure
+
+```text
+YadByad_Frontend/
+├── public/             # application branding and static assets
+├── src/
+│   ├── api/            # Axios client, endpoints, shared request helpers
+│   ├── components/     # reusable UI
+│   ├── forms/          # form workflows
+│   ├── layouts/        # authentication and dashboard layouts
+│   ├── pages/          # page entry points
+│   ├── routes/         # route definitions and account guard
+│   ├── sections/       # feature views and tables
+│   └── theme/          # design tokens and overrides
+├── .env.example
+├── package.json
+├── vercel.json
+└── vite.config.js
+```
+
+This remains an independent Git repository inside `YadByad_Code`. Private documentation, original reference files, and reusable asset copies are outside this repository. Application asset paths were preserved during organization.
+
+## Acknowledgements
+
+The frontend uses the Minimal UI/Minimals starter. Retain the existing MIT license and copyright notice in `LICENSE.md`, along with applicable third-party library and resource licenses.
+
+## Dashboard and navigation
+
+The dashboard shows role-specific totals, status bars, and recent notifications. Account Recovery has its own administrator sidebar entry. Open My Profile from the header account menu. It uses the dashboard layout. Authentication pages pair the original green background with an illustration of a scheduled peer study session. The 404 page links back to the app home. Sidebar navigation keeps the dashboard layout visible and shows a progress bar while a page loads. Admin pages reuse the verified dashboard session.
+
+Login sessions survive page refreshes and browser reopening. Logout revokes the account's sessions on the server; password changes and account removal also invalidate them. Successful saves refresh affected data in place, preserving filters and valid pagination instead of reloading the page.
+
+Student schedules show the selected month in a calendar and a paginated details table. The event-type filter applies to both views. The table also supports text filtering by course, date, room, status, and other visible details.

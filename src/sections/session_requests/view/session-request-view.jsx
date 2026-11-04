@@ -9,6 +9,8 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
+import useApiRefresh from 'src/hooks/use-api-refresh';
+
 import Routes from 'src/api/apiRoutes';
 import { yadbyadGet } from 'src/api/api.service';
 
@@ -24,7 +26,6 @@ import { emptyRows, applyFilter, getComparator } from '../utils';
 // ----------------------------------------------------------------------
 
 export default function ManageReportsView() {
-
   const [sessionrequests, setSessionrequests] = useState([]);
 
   const [dataFiltered, setDataFiltered] = useState([]);
@@ -41,7 +42,7 @@ export default function ManageReportsView() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [notFound,setNotFound] = useState(true);
+  const [notFound, setNotFound] = useState(true);
 
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
@@ -93,43 +94,47 @@ export default function ManageReportsView() {
   };
 
   useEffect(() => {
-    if(!sessionrequests.length){
+    if (!sessionrequests.length) {
       fetchSessionrequests();
     }
-    
+
     const dataFilteredValue = applyFilter({
       inputData: sessionrequests,
       comparator: getComparator(order, orderBy),
       filterName,
     });
-  
-  setDataFiltered(dataFilteredValue);
-  setNotFound(!dataFilteredValue.length && !!filterName);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order,orderBy,filterName]);
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order, orderBy, filterName]);
 
   const fetchSessionrequests = async (e) => {
-    const response = await yadbyadGet(Routes.fetchCasual);   
-    setSessionrequests(response??[]);   
+    const response = await yadbyadGet(Routes.fetchCasual);
+    setSessionrequests(response ?? []);
     const dataFilteredValue = applyFilter({
-      inputData: response??[],
+      inputData: response ?? [],
       comparator: getComparator(order, orderBy),
       filterName,
     });
-    setDataFiltered(dataFilteredValue); 
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
+    setPage((current) =>
+      Math.min(current, Math.max(0, Math.ceil(dataFilteredValue.length / rowsPerPage) - 1))
+    );
   };
 
+  useApiRefresh(fetchSessionrequests, ['/casual', '/schedule', '/lecture', '/slot']);
 
   return (
     <Container>
       <Stack mb={5}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-        <Typography variant="h4">Casual Session Requests</Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+          <Typography variant="h4">Casual Session Requests</Typography>
+        </Stack>
+        <Typography variant="subtitle1">Special Need Students Casual Session Requests</Typography>
       </Stack>
-      <Typography variant='subtitle1'>Special Need Students Casual Session Requests</Typography>
-       </Stack>
 
       <Card>
         <UserTableToolbar
@@ -182,7 +187,7 @@ export default function ManageReportsView() {
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, sessionrequests.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, dataFiltered.length)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -194,7 +199,7 @@ export default function ManageReportsView() {
         <TablePagination
           page={page}
           component="div"
-          count={sessionrequests.length}
+          count={dataFiltered.length}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25, 50]}

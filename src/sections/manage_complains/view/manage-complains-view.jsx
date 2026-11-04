@@ -1,4 +1,4 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -8,6 +8,8 @@ import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
+
+import useApiRefresh from 'src/hooks/use-api-refresh';
 
 import Routes from 'src/api/apiRoutes';
 import { yadbyadGet } from 'src/api/api.service';
@@ -24,8 +26,6 @@ import { emptyRows, applyFilter, getComparator } from '../utils';
 // ----------------------------------------------------------------------
 
 export default function ManageComplainsView() {
-
-  
   const [complains, setComplains] = useState([]);
 
   const [dataFiltered, setDataFiltered] = useState([]);
@@ -42,7 +42,7 @@ export default function ManageComplainsView() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [notFound,setNotFound] = useState(true);
+  const [notFound, setNotFound] = useState(true);
 
   const handleSort = (event, _id) => {
     const isAsc = orderBy === _id && order === 'asc';
@@ -94,43 +94,47 @@ export default function ManageComplainsView() {
   };
 
   useEffect(() => {
-    if(!complains.length){
+    if (!complains.length) {
       fetchComplains();
     }
-    
+
     const dataFilteredValue = applyFilter({
       inputData: complains,
       comparator: getComparator(order, orderBy),
       filterName,
     });
-  
-  setDataFiltered(dataFilteredValue);
-  setNotFound(!dataFilteredValue.length && !!filterName);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order,orderBy,filterName]);
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order, orderBy, filterName]);
 
   const fetchComplains = async (e) => {
-    const response = await yadbyadGet(Routes.fetchAllComplain);   
-    setComplains(response??[]);   
+    const response = await yadbyadGet(Routes.fetchAllComplain);
+    setComplains(response ?? []);
     const dataFilteredValue = applyFilter({
-      inputData: response??[],
+      inputData: response ?? [],
       comparator: getComparator(order, orderBy),
       filterName,
     });
-    setDataFiltered(dataFilteredValue); 
+    setDataFiltered(dataFilteredValue);
+    setNotFound(!dataFilteredValue.length && !!filterName);
+    setPage((current) =>
+      Math.min(current, Math.max(0, Math.ceil(dataFilteredValue.length / rowsPerPage) - 1))
+    );
   };
 
+  useApiRefresh(fetchComplains, ['/complain']);
 
   return (
     <Container>
       <Stack mb={5}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-        <Typography variant="h4">Manage Complains</Typography>
-       </Stack>
-       <Typography variant='subtitle1'>All Students Complain Details</Typography>
-       </Stack>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+          <Typography variant="h4">Manage Complains</Typography>
+        </Stack>
+        <Typography variant="subtitle1">All Students Complain Details</Typography>
+      </Stack>
 
       <Card>
         <UserTableToolbar
@@ -151,10 +155,10 @@ export default function ManageComplainsView() {
                 onSelectAllClick={handleSelectAllClick}
                 headLabel={[
                   { id: 'fullName', label: 'Name' },
-                  { id: 'studentID', label:'Student ID'},
-                  { id: 'role', label:'Role'},
-                  { id: 'subject', label:'Subject'},
-                  { id: 'message', label:'Message'},
+                  { id: 'studentID', label: 'Student ID' },
+                  { id: 'role', label: 'Role' },
+                  { id: 'subject', label: 'Subject' },
+                  { id: 'message', label: 'Message' },
                   { id: 'createdAt', label: 'Created At' },
                   { id: 'status', label: 'Status' },
                   { id: 'reply', label: 'Reply' },
@@ -182,7 +186,7 @@ export default function ManageComplainsView() {
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, complains.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, dataFiltered.length)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -194,7 +198,7 @@ export default function ManageComplainsView() {
         <TablePagination
           page={page}
           component="div"
-          count={complains.length}
+          count={dataFiltered.length}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25, 50]}

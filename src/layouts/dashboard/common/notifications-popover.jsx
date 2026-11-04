@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
@@ -15,6 +14,8 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemButton from '@mui/material/ListItemButton';
 
+import useApiRefresh from 'src/hooks/use-api-refresh';
+
 import { fToNow } from 'src/utils/format-time';
 
 import Routes from 'src/api/apiRoutes';
@@ -26,8 +27,6 @@ import Scrollbar from 'src/components/scrollbar';
 // ----------------------------------------------------------------------
 
 export default function NotificationsPopover() {
-  const history = useNavigate();
-
   const [notifications, setNotifications] = useState([]);
 
   const totalUnRead = notifications.filter((item) => item.isRead === false).length;
@@ -36,6 +35,7 @@ export default function NotificationsPopover() {
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
+    fetchNotifications();
   };
 
   const handleClose = () => {
@@ -48,13 +48,7 @@ export default function NotificationsPopover() {
 
     const user_details = JSON.parse(localStorage.getItem('login_status'));
 
-    const response = await yadbyadPost(Routes.readNotifications(user_details.role), body);
-
-    if (response) {
-      setTimeout(() => {
-        history(0);
-      }, "1500");
-    }
+    await yadbyadPost(Routes.readNotifications(user_details.role), body);
   };
 
   useEffect(() => {
@@ -65,12 +59,29 @@ export default function NotificationsPopover() {
     const user_details = JSON.parse(localStorage.getItem('login_status'));
     // const UserRole = user_details.role
     const response = await yadbyadGet(Routes.fetchNotifications(user_details.role));
-    setNotifications(response);
+    setNotifications(response ?? []);
   };
+
+  useApiRefresh(fetchNotifications, [
+    '/notifications',
+    '/auth/recovery',
+    '/slot',
+    '/schedule',
+    '/lecture',
+    '/casual',
+    '/complain',
+    '/reports',
+    '/reportSlot',
+    '/library',
+  ]);
 
   return (
     <>
-      <IconButton color={open ? '#fff' : '#C4CDD5'} onClick={handleOpen}>
+      <IconButton
+        aria-label={`Notifications, ${totalUnRead} unread`}
+        color={open ? '#fff' : '#C4CDD5'}
+        onClick={handleOpen}
+      >
         <Badge badgeContent={totalUnRead} color="error">
           <Iconify width={24} icon="solar:bell-bold" sx={{ color: 'white' }} />
         </Badge>
@@ -182,25 +193,21 @@ function renderContent(notification) {
     <Typography variant="submessage2">
       {notification.message}
 
-      {notification.notificationType === 'complainsubmitted' &&  (
-      <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
-        &nbsp; {notification.userId?.fullName}
-      </Typography>
-               
+      {notification.notificationType === 'complainsubmitted' && (
+        <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
+          &nbsp; {notification.userId?.fullName}
+        </Typography>
       )}
-      {notification.notificationType === 'casualSessionCreated' &&  (
-      <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
-        &nbsp; {notification.userId?.fullName}
-      </Typography>
-               
+      {notification.notificationType === 'casualSessionCreated' && (
+        <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
+          &nbsp; {notification.userId?.fullName}
+        </Typography>
       )}
-      {notification.notificationType === 'sessionDropped' &&  (
-      <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
-        &nbsp; {notification.userId?.fullName}
-      </Typography>
-               
+      {notification.notificationType === 'sessionDropped' && (
+        <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
+          &nbsp; {notification.userId?.fullName}
+        </Typography>
       )}
-
     </Typography>
   );
 
@@ -213,9 +220,7 @@ function renderContent(notification) {
       message,
     };
   }
-  if (
-    notification.notificationType === 'newStudentJoined'
-  ) {
+  if (notification.notificationType === 'newStudentJoined') {
     return {
       avatar: <img alt={notification.message} src="/assets/icons/ic_student.png" />,
       message,

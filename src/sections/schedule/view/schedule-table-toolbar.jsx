@@ -29,6 +29,7 @@ export default function UserTableToolbar({ numSelected, filterName, onFilterName
         </Typography>
       ) : (
         <OutlinedInput
+          inputProps={{ 'aria-label': 'Search course title' }}
           value={filterName}
           onChange={onFilterName}
           placeholder="Search course title..."
@@ -42,7 +43,6 @@ export default function UserTableToolbar({ numSelected, filterName, onFilterName
           }
         />
       )}
-
     </Toolbar>
   );
 }

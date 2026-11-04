@@ -19,8 +19,13 @@ const navConfig = {
       icon: icon('ic_user'),
     },
     {
+      title: 'account recovery',
+      path: '/account-recovery',
+      icon: icon('ic_user'),
+    },
+    {
       title: 'schedule Exam',
-      path: '/schedules ',
+      path: '/schedules',
       icon: icon('ic_calendar'),
     },
     {
@@ -58,7 +63,7 @@ const navConfig = {
     },
     {
       title: 'schedules',
-      path: '/schedules ',
+      path: '/schedules',
       icon: icon('ic_calendar'),
     },
     {
@@ -91,7 +96,7 @@ const navConfig = {
     },
     {
       title: 'schedules',
-      path: '/schedules ',
+      path: '/schedules',
       icon: icon('ic_calendar'),
     },
     {
