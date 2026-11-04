@@ -24,6 +24,11 @@ export default function SubmitReportForm({ handleClose, id }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (report?.size > 4 * 1024 * 1024) {
+      toast.error('Report files must be 4 MB or smaller.');
+      return;
+    }
+
     const body = new FormData();
     body.append('filename', filename);
     body.append('fileDescription', description);
@@ -78,7 +83,7 @@ export default function SubmitReportForm({ handleClose, id }) {
           InputLabelProps={{
             shrink: true,
           }}
-          helperText="Upload your File/Report."
+          helperText="Maximum file size is 4 MB."
           required
           autoComplete="off"
           onChange={(e) => setReport(e.target.files[0])}

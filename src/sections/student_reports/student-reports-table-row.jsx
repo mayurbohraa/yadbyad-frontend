@@ -4,7 +4,6 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import Popover from '@mui/material/Popover';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
@@ -14,11 +13,11 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 
 import Routes from 'src/api/apiRoutes';
-import { baseURL } from 'src/api/axios';
 import { yadbyadDelete } from 'src/api/api.service';
 
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
+import ReportFileButton from 'src/components/report-file-button';
 
 // ----------------------------------------------------------------------
 
@@ -27,7 +26,6 @@ export default function UserTableRow({
   selected,
   filename,
   description,
-  viewfile,
   remarks,
   createdAt,
   status,
@@ -72,23 +70,7 @@ export default function UserTableRow({
         <TableCell>{slot} </TableCell>
 
         <TableCell>
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              borderRadius: 0.5,
-            }}
-          >
-            <a
-              href={`${baseURL}/${viewfile}`}
-              download
-              target="_blank"
-              rel="noreferrer"
-              style={{ textDecoration: 'none', color: '#fff' }}
-            >
-              <Typography>View File</Typography>
-            </a>
-          </Button>
+          <ReportFileButton reportId={id} filename={filename} />
         </TableCell>
 
         <TableCell>{moment(createdAt).format('L , h:mm a')} </TableCell>
@@ -142,6 +124,5 @@ UserTableRow.propTypes = {
   remarks: PropTypes.string,
   createdAt: PropTypes.string,
   status: PropTypes.string,
-  viewfile: PropTypes.string,
   filename: PropTypes.string,
 };

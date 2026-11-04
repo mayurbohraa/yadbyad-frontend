@@ -173,7 +173,6 @@ export default function StudentReportsView() {
                       id={row._id}
                       filename={row.filename}
                       description={row.fileDescription}
-                      viewfile={row.fileUrl}
                       remarks={row.remarks}
                       createdAt={row.createdAt}
                       status={row.status}

@@ -178,7 +178,6 @@ export default function ManageReportsView() {
                       role={row.userId?.role}
                       filename={row.filename}
                       description={row.fileDescription}
-                      viewfile={row.fileUrl}
                       remarks={row.remarks}
                       createdAt={row.createdAt}
                       status={row.status}

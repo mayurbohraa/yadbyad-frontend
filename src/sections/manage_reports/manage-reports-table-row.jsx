@@ -13,10 +13,10 @@ import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
 import Typography from '@mui/material/Typography';
 
-import { baseURL } from 'src/api/axios';
 import { ReportReplyForm } from 'src/forms/report_reply';
 
 import Label from 'src/components/label';
+import ReportFileButton from 'src/components/report-file-button';
 
 // ----------------------------------------------------------------------
 
@@ -27,7 +27,6 @@ export default function UserTableRow({
   studentID,
   filename,
   description,
-  viewfile,
   remarks,
   role,
   createdAt,
@@ -90,23 +89,7 @@ export default function UserTableRow({
       <TableCell>{slot} </TableCell>
 
       <TableCell>
-        <Button
-          variant="contained"
-          size="small"
-          sx={{
-            borderRadius: 0.5,
-          }}
-        >
-          <a
-            href={`${baseURL}/${viewfile}`}
-            download
-            target="_blank"
-            rel="noreferrer"
-            style={{ textDecoration: 'none', color: '#fff' }}
-          >
-            <Typography sx={{ fontSize: '12px' }}>View File</Typography>
-          </a>
-        </Button>
+        <ReportFileButton reportId={id} filename={filename} />
       </TableCell>
 
       <TableCell>{moment(createdAt).format('L , h:mm a')} </TableCell>
@@ -163,7 +146,6 @@ UserTableRow.propTypes = {
   slot: PropTypes.string,
   studentID: PropTypes.string,
   createdAt: PropTypes.string,
-  viewfile: PropTypes.string,
   filename: PropTypes.string,
   remarks: PropTypes.string,
   status: PropTypes.string,
