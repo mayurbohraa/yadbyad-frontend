@@ -46,8 +46,8 @@ export default function AuthLayout({ title, children, fixedHeight = false }) {
         >
           <Box
             component="img"
-            src="/assets/illustrations/peer-study.svg"
-            alt="Two students sharing study materials at a confirmed peer support session, one using a wheelchair"
+            src="/assets/illustrations/peer-study.png"
+            alt="Two students, one using a wheelchair, studying together with a laptop and books"
             sx={{ width: '100%', maxWidth: 490, maxHeight: '54dvh', objectFit: 'contain' }}
           />
           <Typography
@@ -55,7 +55,7 @@ export default function AuthLayout({ title, children, fixedHeight = false }) {
             variant="h5"
             sx={{ color: 'common.white', textAlign: 'center', fontWeight: 650, textWrap: 'balance' }}
           >
-            Peer support for student success.
+            Empowering student success through peer collaboration.
           </Typography>
         </Stack>
       </Box>

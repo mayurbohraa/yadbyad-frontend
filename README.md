@@ -1,5 +1,9 @@
 # Yad Byad Frontend
 
+*Empowering student success through peer collaboration.*
+
+## About the project
+
 Yad Byad is a college-project student support platform developed through a freelance engagement. The frontend connects students with special needs, part-time student supporters, and administrators through role-based screens.
 
 ## Key features
@@ -14,8 +18,6 @@ Yad Byad is a college-project student support platform developed through a freel
 ## Live website
 
 https://yadbyad-frontend.vercel.app/
-
-The latest local improvements have not been deployed.
 
 ## Tech stack
 
@@ -34,9 +36,11 @@ Node.js, npm, and the running Yad Byad backend. Verification used Node.js 24.13.
 5. Start the backend from its own repository, then run `npm run dev` here.
 6. Open http://localhost:3030/. Vite may choose another port if it is occupied.
 
+## Environment configuration
+
 Development defaults to the backend on port 9000; production defaults to the supplied backend address. `VITE_API_URL` overrides either default at build time and must include `/api/v1`. Client environment values are public and must not contain secrets.
 
-## Running and verification
+## Running locally and verification
 
 ```sh
 npm run dev
@@ -81,7 +85,7 @@ The frontend uses the Minimal UI/Minimals starter. Retain the existing MIT licen
 
 ## Dashboard and navigation
 
-The dashboard shows role-specific totals, status bars, and recent notifications. Account Recovery has its own administrator sidebar entry. Open My Profile from the header account menu. It uses the dashboard layout. Authentication pages pair the original green background with an illustration of a scheduled peer study session. The 404 page links back to the app home. Sidebar navigation keeps the dashboard layout visible and shows a progress bar while a page loads. Admin pages reuse the verified dashboard session.
+The dashboard shows role-specific totals, status bars, and recent notifications. Account Recovery has its own administrator sidebar entry. Open My Profile from the header account menu. It uses the dashboard layout. Authentication pages pair the original green background with an supplied illustration of two students studying together. The 404 page links back to the app home. Sidebar navigation keeps the dashboard layout visible and shows a progress bar while a page loads. Admin pages reuse the verified dashboard session.
 
 Login sessions survive page refreshes and browser reopening. Logout revokes the account's sessions on the server; password changes and account removal also invalidate them. Successful saves refresh affected data in place, preserving filters and valid pagination instead of reloading the page.
 
