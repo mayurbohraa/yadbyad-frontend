@@ -96,13 +96,6 @@ src/
 vercel.json           # SPA routing configuration
 ```
 
-## My Contributions
-
-- Designed the user interface and developed the frontend.
-- Integrated the backend APIs with the application interface.
-- Planned the overall project and frontend implementation.
-- Deployed the frontend on Vercel.
-
 ## Acknowledgements & Credits
 
 The frontend includes the Minimal UI / Minimals starter. The MIT license and copyright notice are preserved in `LICENSE.md`.
