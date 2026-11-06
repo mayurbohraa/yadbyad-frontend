@@ -1,14 +1,14 @@
 # Yad Byad Frontend
 
-## Project Overview
+## Overview
 
 Yad Byad connects students seeking academic assistance with student supporters. Its web interface organizes session planning, matching requests, shared resources, complaints, and report submissions through role-specific workspaces.
 
 ## Project Preview
 
-<img src="public/project-preview.webp" alt="Yad Byad Frontend application screens and visual identity" width="520">
+<img src="public/project-preview.webp" alt="Yad Byad Frontend application screens and visual identity" width="100%">
 
-Application screens and visual identity. Branding mockups are presentation concepts.
+Application preview.
 
 ## Key Features
 
